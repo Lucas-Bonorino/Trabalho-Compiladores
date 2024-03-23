@@ -8,12 +8,13 @@ int line_count=0;
 DIGITS                  [0-9]
 LETTERS_                [a-z_]
 SPECIAL_CHARACTERS      [-!*/%+<>{}()=,;]
+EVERYTHING_NOT_DIGIT    [^0-9]
 INTEGER_LITERAL         {DIGITS}+
 FLOAT_LITERAL           {DIGITS}*"."{DIGITS}+
 IDENTIFIER              {LETTERS_}({LETTERS_}|{DIGITS})*
 NUMBER                  {INTEGER_LITERAL}|{FLOAT_LITERAL}
 IDENTIFIER_ERROR        {NUMBER}{IDENTIFIER}
-FLOAT_FORMAT_ERROR      {DIGITS}*"."(" "|{IDENTIFIER})
+FLOAT_FORMAT_ERROR      {DIGITS}*"."({EVERYTHING_NOT_DIGIT})*
 ERROR                   {IDENTIFIER_ERROR}|{FLOAT_FORMAT_ERROR}
 
 %%

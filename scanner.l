@@ -1,23 +1,25 @@
 %{
 #include "tokens.h"
-int line_count=0;
 %}
 
 %option yylineno
+%option noyywrap
+%x comment
 
 DIGITS                  [0-9]
 LETTERS_                [a-z_]
 SPECIAL_CHARACTERS      [-!*/%+<>{}()=,;]
-EVERYTHING_NOT_DIGIT    [^0-9]
 INTEGER_LITERAL         {DIGITS}+
 FLOAT_LITERAL           {DIGITS}*"."{DIGITS}+
 IDENTIFIER              {LETTERS_}({LETTERS_}|{DIGITS})*
 NUMBER                  {INTEGER_LITERAL}|{FLOAT_LITERAL}
-IDENTIFIER_ERROR        {NUMBER}{IDENTIFIER}
-FLOAT_FORMAT_ERROR      {DIGITS}*"."({EVERYTHING_NOT_DIGIT})*
-ERROR                   {IDENTIFIER_ERROR}|{FLOAT_FORMAT_ERROR}
+COMMENT 		        "//".*("\n")?
 
 %%
+"/*"                    {BEGIN(comment);}
+<comment>"*/"           {BEGIN(INITIAL);}
+<comment>.              {}
+<comment>\n             {}
 true                    {return(TK_LIT_TRUE);}
 false                   {return(TK_LIT_FALSE);}
 int                     {return(TK_PR_INT);}
@@ -33,33 +35,14 @@ return                  {return(TK_PR_RETURN);}
 "!="                    {return(TK_OC_NE);}
 "&"                     {return(TK_OC_AND);}
 "|"                     {return(TK_OC_OR);}
-" "                     {}
-{ERROR}                 {return(TK_ERRO);}
+" "|{COMMENT}           {}
 {INTEGER_LITERAL}       {return(TK_LIT_INT);}
 {FLOAT_LITERAL}         {return(TK_LIT_FLOAT);}
 {SPECIAL_CHARACTERS}    {return(yytext[0]);}
 {IDENTIFIER}            {return(TK_IDENTIFICADOR);}
+.                       {return(TK_ERRO);}
 %%
 
-int yywrap(){}
-int main()
-{
- int token=0;
- yylineno=1;
-
- FILE *fp;
- char filename[]="Exemplo.txt";
- fp = fopen(filename,"r");
- yyin = fp;
-
-
- while(token=yylex())
- {
-    printf("%d\n", token);
- }
-
- return(0);
-}
 
 int get_line_number()
 {

@@ -14,6 +14,7 @@ FLOAT_LITERAL           {DIGITS}*"."{DIGITS}+
 IDENTIFIER              {LETTERS_}({LETTERS_}|{DIGITS})*
 NUMBER                  {INTEGER_LITERAL}|{FLOAT_LITERAL}
 COMMENT 		        "//".*("\n")?
+IGNORE                  "\n"|{COMMENT}|" "
 
 %%
 "/*"                    {BEGIN(comment);}
@@ -35,7 +36,7 @@ return                  {return(TK_PR_RETURN);}
 "!="                    {return(TK_OC_NE);}
 "&"                     {return(TK_OC_AND);}
 "|"                     {return(TK_OC_OR);}
-" "|{COMMENT}           {}
+{IGNORE}                {}
 {INTEGER_LITERAL}       {return(TK_LIT_INT);}
 {FLOAT_LITERAL}         {return(TK_LIT_FLOAT);}
 {SPECIAL_CHARACTERS}    {return(yytext[0]);}

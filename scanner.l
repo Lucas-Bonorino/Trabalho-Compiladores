@@ -1,3 +1,4 @@
+/*Por Lucas dos Santos Bonorino e Rafael Lacerda Busatta*/
 %{
 #include "tokens.h"
 %}
@@ -12,8 +13,7 @@ SPECIAL_CHARACTERS      [-!*/%+<>{}()=,;]
 INTEGER_LITERAL         {DIGITS}+
 FLOAT_LITERAL           {DIGITS}*"."{DIGITS}+
 IDENTIFIER              {LETTERS_}({LETTERS_}|{DIGITS})*
-NUMBER                  {INTEGER_LITERAL}|{FLOAT_LITERAL}
-COMMENT 		        "//".*("\n")?
+COMMENT 		        "//".*
 IGNORE                  "\n"|{COMMENT}|" "
 
 %%

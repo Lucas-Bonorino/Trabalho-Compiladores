@@ -1,17 +1,31 @@
+IDIR =./
 CC=gcc
-CFLAGS=-I.
-DEPS = tokens.h
-OBJ = main.o scanner.o
+CFLAGS=-I$(IDIR)
 
-%.o: %.c $(DEPS)
-	$(CC) -c -o $@ $< $(CFLAGS)
+ODIR=./
+LDIR=./
 
-all: etapa1 clean
+_DEPS = parser.tab.c main.c lex.yy.c 
+DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-etapa1: $(OBJ)
-	$(CC) -o $@ $^ $(CFLAGS)
+_OBJ = parser.tab.o main.o lex.yy.o
+OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
+
+all: parser scanner generate_obj etapa2 clean
+
+parser: parser.y
+	bison -d parser.y
+
+scanner: scanner.l
+	flex scanner.l
+
+generate_obj: $(DEPS)
+	$(CC) -c $(DEPS)
+
+etapa2: $(OBJ)
+	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
 .PHONY: clean
 
 clean:
-	rm -f *.o
+	rm -f *.o parser.tab* lex.* 

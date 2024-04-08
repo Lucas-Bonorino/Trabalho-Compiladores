@@ -1,6 +1,6 @@
 /*Por Lucas dos Santos Bonorino e Rafael Lacerda Busatta*/
 %{
-#include "tokens.h"
+#include "parser.tab.h"
 %}
 
 %option yylineno
@@ -14,7 +14,7 @@ INTEGER_LITERAL         {DIGITS}+
 FLOAT_LITERAL           {DIGITS}*"."{DIGITS}+
 IDENTIFIER              {LETTERS_}({LETTERS_}|{DIGITS})*
 COMMENT 		        "//".*
-IGNORE                  "\n"|{COMMENT}|" "
+IGNORE                  "\n"|{COMMENT}|" "|"\t"
 
 %%
 "/*"                    {BEGIN(comment);}

@@ -77,7 +77,7 @@ COMMAND_LIST:                   COMMAND_LIST COMMAND |  %empty;
 
 //Um comando simples pode ser um comando de atribução, uma declaração de variável, uma chamada de função, um comando de retorno ou um comando de controle de fluxo
 //Um bloco de comandos é considerado um comando simples recursivamente
-COMMAND:                        VARIABLE_DECLARATION |  VARIABLE_ASSIGNMENT | FUNCTION_CALLING ',' | RETURN_COMMAND | FLUX_CONTROL_COMMAND | COMMAND_BLOCK;
+COMMAND:                        VARIABLE_DECLARATION |  VARIABLE_ASSIGNMENT | FUNCTION_CALLING ',' | RETURN_COMMAND | FLUX_CONTROL_COMMAND ',' | COMMAND_BLOCK ',' ;
 
 //Seçao 3.4 
 
@@ -106,13 +106,24 @@ OPTIONAL_ELSE_STRUCTURE:        TK_PR_ELSE COMMAND_BLOCK | %empty;
 ITERATIVE_STRUCTURE:            TK_PR_WHILE '(' EXPRESSION_7TH ')' COMMAND_BLOCK;
 
 //Secao 3.5 
-EXPRESSION_7TH:                     EXPRESSION_7TH TK_OC_OR EXPRESSION_6TH   | EXPRESSION_6TH;
-EXPRESSION_6TH:                     EXPRESSION_6TH TK_OC_AND EXPRESSION_5TH  | EXPRESSION_5TH;
-EXPRESSION_5TH:                     EXPRESSION_5TH TK_OC_EQ EXPRESSION_4TH   | EXPRESSION_5TH TK_OC_NE EXPRESSION_4TH  | EXPRESSION_4TH;
-EXPRESSION_4TH:                     EXPRESSION_4TH TK_OC_GE EXPRESSION_3RD   | EXPRESSION_4TH TK_OC_LE EXPRESSION_3RD  | EXPRESSION_4TH '<' EXPRESSION_3RD  | EXPRESSION_4TH '>' EXPRESSION_3RD   | EXPRESSION_3RD;
-EXPRESSION_3RD:                     EXPRESSION_3RD '+' EXPRESSION_2ND        | EXPRESSION_3RD '-' EXPRESSION_2ND       | EXPRESSION_2ND;
-EXPRESSION_2ND:                     EXPRESSION_2ND '*' EXPRESSION_1ST        | EXPRESSION_2ND  '/' EXPRESSION_1ST      | EXPRESSION_2ND  '%' EXPRESSION_1ST | EXPRESSION_1ST;
-EXPRESSION_1ST:                     '-' EXPRESSION_1ST                       | '!' EXPRESSION_1ST                      | OPERAND;
+EXPRESSION_7TH:                     EXPRESSION_7TH TK_OC_OR EXPRESSION_6TH       | EXPRESSION_6TH;
+
+EXPRESSION_6TH:                     EXPRESSION_6TH TK_OC_AND EXPRESSION_5TH      | EXPRESSION_5TH;
+ 
+EXPRESSION_5TH:                     EXPRESSION_5TH EQ_COMP_OP EXPRESSION_4TH     | EXPRESSION_4TH;
+EQ_COMP_OP:                         TK_OC_EQ | TK_OC_NE;
+
+EXPRESSION_4TH:                     EXPRESSION_4TH COMP_OP EXPRESSION_3RD        | EXPRESSION_3RD;
+COMP_OP:                            TK_OC_GE | TK_OC_LE | '<' | '>' ;
+
+EXPRESSION_3RD:                     EXPRESSION_3RD SUM_SUB_OP EXPRESSION_2ND     | EXPRESSION_2ND;
+SUM_SUB_OP:                         '+' | '-';
+
+EXPRESSION_2ND:                     EXPRESSION_2ND DIV_MUL_MOD_OP EXPRESSION_1ST | EXPRESSION_1ST;
+DIV_MUL_MOD_OP:                     '*' | '/' | '%';
+
+EXPRESSION_1ST:                     UNARY_OP EXPRESSION_1ST                      | OPERAND;
+UNARY_OP:                           '-' | '!';
 
 //Operandos podem ser literais, identificadores, ou chamadas de funções
 //mas para permitir a mudança de associatividade através dos parênteses,

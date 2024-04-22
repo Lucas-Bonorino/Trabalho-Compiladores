@@ -4,10 +4,21 @@
 extern int get_line_number(void); 
 int yylex(void);
 void yyerror (char const *mensagem);
+
 %}
 
 %start PROGRAM
 %define parse.error verbose
+
+%code requires
+{
+    #include "Tree_Lex_Val.h"
+}
+
+%union{
+    TOKENDATA valor_lex;
+    NODOAST nodo;
+}
 
 %token TK_PR_INT
 %token TK_PR_FLOAT
@@ -22,12 +33,13 @@ void yyerror (char const *mensagem);
 %token TK_OC_NE
 %token TK_OC_AND
 %token TK_OC_OR
-%token TK_IDENTIFICADOR
-%token TK_LIT_INT
-%token TK_LIT_FLOAT
-%token TK_LIT_FALSE
-%token TK_LIT_TRUE
+%token <valor_lex> TK_IDENTIFICADOR
+%token <valor_lex> TK_LIT_INT
+%token <valor_lex> TK_LIT_FLOAT
+%token <valor_lex> TK_LIT_FALSE
+%token <valor_lex> TK_LIT_TRUE
 %token TK_ERRO
+
 
 %%
 //Seção 3

@@ -21,8 +21,8 @@ IGNORE                  "\n"|{COMMENT}|" "|"\t"
 <comment>"*/"           {BEGIN(INITIAL);}
 <comment>.              {}
 <comment>\n             {}
-true                    {return(TK_LIT_TRUE);}
-false                   {return(TK_LIT_FALSE);}
+true                    {yylval.valor_lex=tokendata(yytext, yylineno, LITERAL); return(TK_LIT_TRUE);}
+false                   {yylval.valor_lex=tokendata(yytext, yylineno, LITERAL); return(TK_LIT_FALSE);}
 int                     {return(TK_PR_INT);}
 float                   {return(TK_PR_FLOAT);}
 bool                    {return(TK_PR_BOOL);}
@@ -37,10 +37,10 @@ return                  {return(TK_PR_RETURN);}
 "&"                     {return(TK_OC_AND);}
 "|"                     {return(TK_OC_OR);}
 {IGNORE}                {}
-{INTEGER_LITERAL}       {return(TK_LIT_INT);}
-{FLOAT_LITERAL}         {return(TK_LIT_FLOAT);}
+{INTEGER_LITERAL}       {yylval.valor_lex=tokendata(yytext, yylineno, LITERAL); return(TK_LIT_INT);}
+{FLOAT_LITERAL}         {yylval.valor_lex=tokendata(yytext, yylineno, LITERAL); return(TK_LIT_FLOAT);}
 {SPECIAL_CHARACTERS}    {return(yytext[0]);}
-{IDENTIFIER}            {return(TK_IDENTIFICADOR);}
+{IDENTIFIER}            {yylval.valor_lex=tokendata(yytext, yylineno, IDENTIFICADOR); return(TK_IDENTIFICADOR);}
 .                       {return(TK_ERRO);}
 %%
 

@@ -5,10 +5,10 @@ CFLAGS=-I$(IDIR)
 ODIR=./
 LDIR=./
 
-_DEPS = parser.tab.c main.c lex.yy.c 
+_DEPS = Tree_Lex_Val.c parser.tab.c main.c lex.yy.c 
 DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 
-_OBJ = parser.tab.o main.o lex.yy.o
+_OBJ = Tree_Lex_Val.o parser.tab.o main.o lex.yy.o
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
 all: parser scanner generate_obj etapa2 clean

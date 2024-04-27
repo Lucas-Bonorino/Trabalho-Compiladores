@@ -4,7 +4,7 @@
 extern int get_line_number(void); 
 int yylex(void);
 void yyerror (char const *mensagem);
-
+extern void *arvore;
 %}
 
 %start PROGRAM
@@ -16,8 +16,9 @@ void yyerror (char const *mensagem);
 }
 
 %union{
-    TOKENDATA valor_lex;
-    NODOAST nodo;
+    TOKENDATA* valor_lex;
+    NODOAST* nodo;
+    char*    lexema;
 }
 
 %token TK_PR_INT
@@ -40,108 +41,139 @@ void yyerror (char const *mensagem);
 %token <valor_lex> TK_LIT_TRUE
 %token TK_ERRO
 
+%type  <nodo>      FUNCTION_HEADER
+%type  <nodo>      PROGRAM_COMPONENT_LIST
+%type  <nodo>      PROGRAM_COMPONENT
+%type  <nodo>      FUNCTION_DECLARATION
+%type  <nodo>      COMMAND_BLOCK 
+%type  <nodo>      COMMAND_LIST
+%type  <nodo>      COMMAND
+%type  <nodo>      FUNCTION_CALLING
+%type  <nodo>      ARGUMENTS
+%type  <nodo>      ARGUMENT_LIST
+%type  <nodo>      VARIABLE_ASSIGNMENT
+%type  <nodo>      RETURN_COMMAND
+%type  <nodo>      FLUX_CONTROL_COMMAND
+%type  <nodo>      CONDITIONAL_STRUCTURE
+%type  <nodo>      OPTIONAL_ELSE_STRUCTURE
+%type  <nodo>      ITERATIVE_STRUCTURE
+
+%type  <nodo>      OPERAND
+%type  <nodo>      EXPRESSION_7TH
+%type  <nodo>      EXPRESSION_6TH
+%type  <nodo>      EXPRESSION_5TH
+%type  <nodo>      EXPRESSION_4TH
+%type  <nodo>      EXPRESSION_3RD
+%type  <nodo>      EXPRESSION_2ND
+%type  <nodo>      EXPRESSION_1ST
+%type  <lexema>    UNARY_OP  
+%type  <lexema>    EQ_COMP_OP
+%type  <lexema>    COMP_OP
+%type  <lexema>    DIV_MUL_MOD_OP
+%type  <lexema>    SUM_SUB_OP    
 
 %%
-//Seção 3
-//O programa pode ser vazio, 
-PROGRAM:                        PROGRAM_COMPONENT_LIST |  %empty;
 
-//ou uma lista de componentes de um programa 
-PROGRAM_COMPONENT_LIST:         PROGRAM_COMPONENT_LIST PROGRAM_COMPONENT | PROGRAM_COMPONENT;
+PROGRAM:                        PROGRAM_COMPONENT_LIST {arvore=$1;}|  %empty{arvore=NULL;};
 
-//Um componente de um programa pode ser uma declaração de variável global 
-//Ou uma declaração de função
-PROGRAM_COMPONENT:              VARIABLE_DECLARATION | FUNCTION_DECLARATION;  
 
-//Seção 3.1 
-//Uma declaração de variável consiste em seu tipo
+PROGRAM_COMPONENT_LIST:         PROGRAM_COMPONENT_LIST PROGRAM_COMPONENT {$$=Adiciona_filho($2, $1);}| PROGRAM_COMPONENT {$$=$1;};
+
+
+PROGRAM_COMPONENT:              VARIABLE_DECLARATION {$$=NULL;}| FUNCTION_DECLARATION {$$=$1;};  
+
+
 VARIABLE_DECLARATION:           DATA_TYPE VARIABLE_LIST ',' ;
 
-//Seguido de pelo menos um lista composta por pelo menos um nome de varíavel
-//separados por ponto e vírgula
-VARIABLE_LIST:                  VARIABLE_LIST ';' TK_IDENTIFICADOR | TK_IDENTIFICADOR ;
 
-//Seção 3.2
-//Cada função é definida por um cabeçalho e um corpo, o corpo da função é um bloco de comandos
-FUNCTION_DECLARATION:           FUNCTION_HEADER COMMAND_BLOCK;
+VARIABLE_LIST:                  VARIABLE_LIST ';' TK_IDENTIFICADOR | TK_IDENTIFICADOR;
 
-//O cabeçalho consiste na lista de parâmetros, seguido de TK_OC_OR o tipo de retorno, uma / e o nome da função
-FUNCTION_HEADER:                FUNCTION_PARAMETERS TK_OC_OR DATA_TYPE '/' TK_IDENTIFICADOR;
 
-//Os parâmetros da função são uma lista de parâmetros entre parênteses  
+FUNCTION_DECLARATION:           FUNCTION_HEADER COMMAND_BLOCK {$$=Adiciona_filho($1, $2);};
+
+
+FUNCTION_HEADER:                FUNCTION_PARAMETERS TK_OC_OR DATA_TYPE '/' TK_IDENTIFICADOR {$$=Cria_folha($5->token);};
+
+
 FUNCTION_PARAMETERS:            '(' PARAMETERS ')';
 
-//Essa lista pode ser vazia
+
 PARAMETERS:                     PARAMETER_LIST | %empty ;
 
-// ou conter parâmetros separados por ponto e vírgula
 PARAMETER_LIST:                 PARAMETER_LIST ';' PARAMETER | PARAMETER;
 
-//Cada parâmetro é definido pelo seu tipo e nome 
 PARAMETER:                      DATA_TYPE TK_IDENTIFICADOR; 
 
-//Seção 3.3 e 3.4
-//Um bloco de comandos é definido entre chaves
-COMMAND_BLOCK:                  '{' COMMAND_LIST '}';
 
-//E contém uma lista, potencialmente vazia de comandos simples
-COMMAND_LIST:                   COMMAND_LIST COMMAND |  %empty;
+COMMAND_BLOCK:                  '{' COMMAND_LIST '}' {$$=$2;} | '{' '}' {$$=NULL;};
 
-//Um comando simples pode ser um comando de atribução, uma declaração de variável, uma chamada de função, um comando de retorno ou um comando de controle de fluxo
-//Um bloco de comandos é considerado um comando simples recursivamente
-COMMAND:                        VARIABLE_DECLARATION |  VARIABLE_ASSIGNMENT | FUNCTION_CALLING ',' | RETURN_COMMAND | FLUX_CONTROL_COMMAND ',' | COMMAND_BLOCK ',' ;
 
-//Seçao 3.4 
+COMMAND_LIST:                   COMMAND_LIST COMMAND {$$=Adiciona_filho($1, $2);}| COMMAND {$$=$1;};
 
-//Uma atribuição de variável consiste em um identificador seguido pelo caractere de igualdade seguido por uma expressão
-VARIABLE_ASSIGNMENT:            TK_IDENTIFICADOR '=' EXPRESSION_7TH ',' ;
 
-//Uma chamada de função consiste em um identificador de função seguida pelos argumentos entre parênteses
-FUNCTION_CALLING:               TK_IDENTIFICADOR '(' ARGUMENTS ')' ;
+COMMAND:                        VARIABLE_DECLARATION {$$=NULL;}|  VARIABLE_ASSIGNMENT {$$=$1;}| FUNCTION_CALLING ','{$$=$1;} | RETURN_COMMAND {$$=$1;}| FLUX_CONTROL_COMMAND ',' {$$=$1;}| COMMAND_BLOCK ',' {$$=$1;};
 
-//A lista contem argumentos separados por ponto e vírgula, um argumento pode ser uma expressão
-ARGUMENTS:                      ARGUMENT_LIST | %empty; 
-ARGUMENT_LIST:                  ARGUMENT_LIST ';' EXPRESSION_7TH| EXPRESSION_7TH;
 
-//Um comando de retorno consistem em um token "return" seguido de uma expressão
-RETURN_COMMAND:                 TK_PR_RETURN EXPRESSION_7TH ',';
+VARIABLE_ASSIGNMENT:            TK_IDENTIFICADOR '=' EXPRESSION_7TH ',' {$$=Cria_nodo("=", Cria_folha($1->token), $3);};
 
-//A linguagem contém uma construção condicional e uma iterativa para o controle estruturado de fluxo
-FLUX_CONTROL_COMMAND:           CONDITIONAL_STRUCTURE | ITERATIVE_STRUCTURE;
 
-//A estrutura condicional consiste em um token if, seguido de uma expressão entre parênteses e então um bloco de comandos obrigatório 
-CONDITIONAL_STRUCTURE:          TK_PR_IF '(' EXPRESSION_7TH ')' COMMAND_BLOCK OPTIONAL_ELSE_STRUCTURE;
-//O else é opcional, e, caso empregado, é seguido obrigatoriamente por um bloco de comandos
-OPTIONAL_ELSE_STRUCTURE:        TK_PR_ELSE COMMAND_BLOCK | %empty;
+FUNCTION_CALLING:               TK_IDENTIFICADOR '(' ARGUMENTS ')' {$$=Cria_nodo(StringCat("call ",$1->token), $3, NULL);};
 
-//A estrutura iterativa é consiste em um token while seguido de uma expressão entre parênteses e um bloco de comandos
-ITERATIVE_STRUCTURE:            TK_PR_WHILE '(' EXPRESSION_7TH ')' COMMAND_BLOCK;
 
-//Secao 3.5 
-EXPRESSION_7TH:                     EXPRESSION_7TH TK_OC_OR EXPRESSION_6TH       | EXPRESSION_6TH;
+ARGUMENTS:                      ARGUMENT_LIST {$$=$1;}| %empty {$$=NULL;}; 
+ARGUMENT_LIST:                  ARGUMENT_LIST ';' EXPRESSION_7TH    {$$=Adiciona_filho($1, $3);}| EXPRESSION_7TH {$$=$1;};
 
-EXPRESSION_6TH:                     EXPRESSION_6TH TK_OC_AND EXPRESSION_5TH      | EXPRESSION_5TH;
+
+RETURN_COMMAND:                 TK_PR_RETURN EXPRESSION_7TH ',' {$$=Cria_nodo("return", $2, NULL);};
+
+
+FLUX_CONTROL_COMMAND:           CONDITIONAL_STRUCTURE {$$=$1;}| ITERATIVE_STRUCTURE {$$=$1;};
+
+CONDITIONAL_STRUCTURE:          TK_PR_IF '(' EXPRESSION_7TH ')' COMMAND_BLOCK OPTIONAL_ELSE_STRUCTURE {$$=Adiciona_filho(Cria_nodo("if", $3, $5),$6);};
+
+OPTIONAL_ELSE_STRUCTURE:        TK_PR_ELSE COMMAND_BLOCK {$$=$2;}| %empty {$$=NULL;};
+
+
+ITERATIVE_STRUCTURE:            TK_PR_WHILE '(' EXPRESSION_7TH ')' COMMAND_BLOCK  {$$=Cria_nodo("while", $3, $5);};
+
+
+EXPRESSION_7TH:                     EXPRESSION_7TH TK_OC_OR EXPRESSION_6TH       {Cria_nodo("|", $1, $3);}| EXPRESSION_6TH {$$=$1;};
+
+EXPRESSION_6TH:                     EXPRESSION_6TH TK_OC_AND EXPRESSION_5TH      {Cria_nodo("&", $1, $3);}| EXPRESSION_5TH {$$=$1;};
  
-EXPRESSION_5TH:                     EXPRESSION_5TH EQ_COMP_OP EXPRESSION_4TH     | EXPRESSION_4TH;
-EQ_COMP_OP:                         TK_OC_EQ | TK_OC_NE;
+EXPRESSION_5TH:                     EXPRESSION_5TH EQ_COMP_OP EXPRESSION_4TH     {Cria_nodo($2, $1, $3);}| EXPRESSION_4TH {$$=$1;};
+EQ_COMP_OP:                         TK_OC_EQ {$$="==";}
+                                    | TK_OC_NE {$$="!=";};
 
-EXPRESSION_4TH:                     EXPRESSION_4TH COMP_OP EXPRESSION_3RD        | EXPRESSION_3RD;
-COMP_OP:                            TK_OC_GE | TK_OC_LE | '<' | '>' ;
+EXPRESSION_4TH:                     EXPRESSION_4TH COMP_OP EXPRESSION_3RD        {Cria_nodo($2, $1, $3);}| EXPRESSION_3RD {$$=$1;};
+COMP_OP:                            TK_OC_GE {$$=">=";}
+                                    | TK_OC_LE {$$="<=";}
+                                    | '<' {$$="<";}
+                                    | '>' {$$=">";};
 
-EXPRESSION_3RD:                     EXPRESSION_3RD SUM_SUB_OP EXPRESSION_2ND     | EXPRESSION_2ND;
-SUM_SUB_OP:                         '+' | '-';
+EXPRESSION_3RD:                     EXPRESSION_3RD SUM_SUB_OP EXPRESSION_2ND     {Cria_nodo($2, $1, $3);}| EXPRESSION_2ND {$$=$1;};
+SUM_SUB_OP:                         '+' {$$="+";}
+                                    | '-' {$$="-";};
 
-EXPRESSION_2ND:                     EXPRESSION_2ND DIV_MUL_MOD_OP EXPRESSION_1ST | EXPRESSION_1ST;
-DIV_MUL_MOD_OP:                     '*' | '/' | '%';
+EXPRESSION_2ND:                     EXPRESSION_2ND DIV_MUL_MOD_OP EXPRESSION_1ST {Cria_nodo($2, $1, $3);}| EXPRESSION_1ST {$$=$1;};
+DIV_MUL_MOD_OP:                     '*' {$$="*";}
+                                    | '/' {$$="/";}
+                                    | '%'{$$="%";};
 
-EXPRESSION_1ST:                     UNARY_OP EXPRESSION_1ST                      | OPERAND;
-UNARY_OP:                           '-' | '!';
+EXPRESSION_1ST:                     UNARY_OP EXPRESSION_1ST                      {Cria_nodo($1, $2, NULL);}| OPERAND  {$$=$1;};
+UNARY_OP:                           '-' {$$="-";}| '!' {$$="!";};
 
-//Operandos podem ser literais, identificadores, ou chamadas de funções
-//mas para permitir a mudança de associatividade através dos parênteses,
-//também permitimos que sejam expressões entre parênteses, assim a recursão
-//é feita sem que seja necessariamente feita a associatividade a esquerda
-OPERAND:                        TK_LIT_FALSE | TK_LIT_TRUE | TK_LIT_INT | TK_LIT_FLOAT | TK_IDENTIFICADOR | FUNCTION_CALLING | '(' EXPRESSION_7TH ')';  
+
+
+OPERAND:                        TK_LIT_FALSE {$$=Cria_folha($1->token);}
+                                | TK_LIT_TRUE {$$=Cria_folha($1->token);}
+                                | TK_LIT_INT {$$=Cria_folha($1->token);}
+                                | TK_LIT_FLOAT {$$=Cria_folha($1->token);}
+                                | TK_IDENTIFICADOR {$$=Cria_folha($1->token);} 
+                                | FUNCTION_CALLING {$$=$1;}
+                                | '(' EXPRESSION_7TH ')'{$$=$2;};  
+
+
 
 DATA_TYPE:                      TK_PR_FLOAT | TK_PR_INT | TK_PR_BOOL;
            

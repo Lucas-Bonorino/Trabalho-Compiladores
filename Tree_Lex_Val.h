@@ -14,7 +14,16 @@ typedef struct Nodo_Arvore NODOAST;
 struct Nodo_Arvore
 {
     char *nome;
-    NODOAST *filhos[];
+    int numero_filhos;
+    NODOAST **filhos;
 };
 
-TOKENDATA tokendata(char* token, int line_number, TOKEN_TYPE type);
+TOKENDATA* tokendata(char* token, int line_number, TOKEN_TYPE type);
+
+NODOAST* Cria_folha(char* valor);
+
+NODOAST* Cria_nodo(char* valor, NODOAST *filho1, NODOAST *filho2);
+
+char* StringCat(char StringBegin[], char StringEnd[]);
+
+NODOAST* Adiciona_filho(NODOAST *pai, NODOAST *filho);

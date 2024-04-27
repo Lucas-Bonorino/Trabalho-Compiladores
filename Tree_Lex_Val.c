@@ -22,6 +22,8 @@ NODOAST* Cria_folha(char* valor)
     folha->nome=strdup(valor);
     folha->numero_filhos=0;
     folha->filhos=NULL;
+    folha->seguinte=NULL;
+    folha->ultimo=folha;
 
     return(folha);
 }
@@ -43,6 +45,9 @@ NODOAST* Cria_nodo(char* valor, NODOAST *filho1, NODOAST *filho2)
     if(filho1!=NULL) {folha->filhos[i]=filho1; i+=1;}
     if(filho2!=NULL) {folha->filhos[i]=filho2;}
 
+    folha->seguinte=NULL;
+    folha->ultimo=folha;
+
     return(folha);
 }
 
@@ -61,6 +66,20 @@ NODOAST* Adiciona_filho(NODOAST *pai, NODOAST *filho)
     return(pai);
 }
 
+NODOAST* Adiciona_Seguinte(NODOAST *pai, NODOAST *seguinte)
+{
+    
+    if(pai==NULL) return(seguinte);
+  
+    NODOAST *atual=pai->ultimo;
+
+    pai->ultimo=seguinte;
+
+    atual->seguinte=seguinte;
+
+    return(pai);
+}
+
 char* StringCat(char StringBegin[], char StringEnd[])
 {
     int lenEnd=strlen(StringEnd);
@@ -74,14 +93,18 @@ char* StringCat(char StringBegin[], char StringEnd[])
     return(New_String);
 }
 
+void Imprime_Label(NODOAST* nodo)
+{
+    printf("%p [label=\"%s\"];\n", nodo, nodo->nome);
+}
+
+void Imprime_Filho(NODOAST* nodo, NODOAST* filho)
+{
+    printf("%p, %p\n", nodo, filho);
+}
 
 void exporta (void *arvore)
 {
     NODOAST *raiz=(NODOAST*)arvore;
 
-    printf("%s\n", raiz->nome);
-    raiz=raiz->filhos[raiz->numero_filhos-1];
-    printf("%s\n", raiz->nome);
-    raiz=raiz->filhos[raiz->numero_filhos-1];
-    printf("%s\n", raiz->nome);
 }

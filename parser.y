@@ -77,7 +77,7 @@ extern void *arvore;
 PROGRAM:                        PROGRAM_COMPONENT_LIST {arvore=$1;}|  %empty{arvore=NULL;};
 
 
-PROGRAM_COMPONENT_LIST:         PROGRAM_COMPONENT_LIST PROGRAM_COMPONENT {$$=Adiciona_filho($2, $1);}| PROGRAM_COMPONENT {$$=$1;};
+PROGRAM_COMPONENT_LIST:         PROGRAM_COMPONENT_LIST PROGRAM_COMPONENT {$$=Adiciona_Seguinte($1, $2);}| PROGRAM_COMPONENT {$$=$1;};
 
 
 PROGRAM_COMPONENT:              VARIABLE_DECLARATION {$$=NULL;}| FUNCTION_DECLARATION {$$=$1;};  
@@ -108,7 +108,7 @@ PARAMETER:                      DATA_TYPE TK_IDENTIFICADOR;
 COMMAND_BLOCK:                  '{' COMMAND_LIST '}' {$$=$2;} | '{' '}' {$$=NULL;};
 
 
-COMMAND_LIST:                   COMMAND_LIST COMMAND {$$=Adiciona_filho($1, $2);}| COMMAND {$$=$1;};
+COMMAND_LIST:                   COMMAND_LIST COMMAND {$$=Adiciona_Seguinte($1, $2);}| COMMAND {$$=$1;};
 
 
 COMMAND:                        VARIABLE_DECLARATION {$$=NULL;}|  VARIABLE_ASSIGNMENT {$$=$1;}| FUNCTION_CALLING ','{$$=$1;} | RETURN_COMMAND {$$=$1;}| FLUX_CONTROL_COMMAND ',' {$$=$1;}| COMMAND_BLOCK ',' {$$=$1;};
@@ -121,7 +121,7 @@ FUNCTION_CALLING:               TK_IDENTIFICADOR '(' ARGUMENTS ')' {$$=Cria_nodo
 
 
 ARGUMENTS:                      ARGUMENT_LIST {$$=$1;}| %empty {$$=NULL;}; 
-ARGUMENT_LIST:                  ARGUMENT_LIST ';' EXPRESSION_7TH    {$$=Adiciona_filho($1, $3);}| EXPRESSION_7TH {$$=$1;};
+ARGUMENT_LIST:                  ARGUMENT_LIST ';' EXPRESSION_7TH    {$$=Adiciona_Seguinte($1, $3);}| EXPRESSION_7TH {$$=$1;};
 
 
 RETURN_COMMAND:                 TK_PR_RETURN EXPRESSION_7TH ',' {$$=Cria_nodo("return", $2, NULL);};
@@ -137,30 +137,30 @@ OPTIONAL_ELSE_STRUCTURE:        TK_PR_ELSE COMMAND_BLOCK {$$=$2;}| %empty {$$=NU
 ITERATIVE_STRUCTURE:            TK_PR_WHILE '(' EXPRESSION_7TH ')' COMMAND_BLOCK  {$$=Cria_nodo("while", $3, $5);};
 
 
-EXPRESSION_7TH:                     EXPRESSION_7TH TK_OC_OR EXPRESSION_6TH       {Cria_nodo("|", $1, $3);}| EXPRESSION_6TH {$$=$1;};
+EXPRESSION_7TH:                     EXPRESSION_7TH TK_OC_OR EXPRESSION_6TH       {$$=Cria_nodo("|", $1, $3);}| EXPRESSION_6TH {$$=$1;};
 
-EXPRESSION_6TH:                     EXPRESSION_6TH TK_OC_AND EXPRESSION_5TH      {Cria_nodo("&", $1, $3);}| EXPRESSION_5TH {$$=$1;};
+EXPRESSION_6TH:                     EXPRESSION_6TH TK_OC_AND EXPRESSION_5TH      {$$=Cria_nodo("&", $1, $3);}| EXPRESSION_5TH {$$=$1;};
  
-EXPRESSION_5TH:                     EXPRESSION_5TH EQ_COMP_OP EXPRESSION_4TH     {Cria_nodo($2, $1, $3);}| EXPRESSION_4TH {$$=$1;};
+EXPRESSION_5TH:                     EXPRESSION_5TH EQ_COMP_OP EXPRESSION_4TH     {$$=Cria_nodo($2, $1, $3);}| EXPRESSION_4TH {$$=$1;};
 EQ_COMP_OP:                         TK_OC_EQ {$$="==";}
                                     | TK_OC_NE {$$="!=";};
 
-EXPRESSION_4TH:                     EXPRESSION_4TH COMP_OP EXPRESSION_3RD        {Cria_nodo($2, $1, $3);}| EXPRESSION_3RD {$$=$1;};
+EXPRESSION_4TH:                     EXPRESSION_4TH COMP_OP EXPRESSION_3RD        {$$=Cria_nodo($2, $1, $3);}| EXPRESSION_3RD {$$=$1;};
 COMP_OP:                            TK_OC_GE {$$=">=";}
                                     | TK_OC_LE {$$="<=";}
                                     | '<' {$$="<";}
                                     | '>' {$$=">";};
 
-EXPRESSION_3RD:                     EXPRESSION_3RD SUM_SUB_OP EXPRESSION_2ND     {Cria_nodo($2, $1, $3);}| EXPRESSION_2ND {$$=$1;};
+EXPRESSION_3RD:                     EXPRESSION_3RD SUM_SUB_OP EXPRESSION_2ND     {$$=Cria_nodo($2, $1, $3);}| EXPRESSION_2ND {$$=$1;};
 SUM_SUB_OP:                         '+' {$$="+";}
                                     | '-' {$$="-";};
 
-EXPRESSION_2ND:                     EXPRESSION_2ND DIV_MUL_MOD_OP EXPRESSION_1ST {Cria_nodo($2, $1, $3);}| EXPRESSION_1ST {$$=$1;};
+EXPRESSION_2ND:                     EXPRESSION_2ND DIV_MUL_MOD_OP EXPRESSION_1ST {$$=Cria_nodo($2, $1, $3);}| EXPRESSION_1ST {$$=$1;};
 DIV_MUL_MOD_OP:                     '*' {$$="*";}
                                     | '/' {$$="/";}
                                     | '%'{$$="%";};
 
-EXPRESSION_1ST:                     UNARY_OP EXPRESSION_1ST                      {Cria_nodo($1, $2, NULL);}| OPERAND  {$$=$1;};
+EXPRESSION_1ST:                     UNARY_OP EXPRESSION_1ST                      {$$=Cria_nodo($1, $2, NULL);}| OPERAND  {$$=$1;};
 UNARY_OP:                           '-' {$$="-";}| '!' {$$="!";};
 
 

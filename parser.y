@@ -108,7 +108,7 @@ PARAMETER:                      DATA_TYPE TK_IDENTIFICADOR;
 COMMAND_BLOCK:                  '{' COMMAND_LIST '}' {$$=$2;} | '{' '}' {$$=NULL;};
 
 
-COMMAND_LIST:                   COMMAND_LIST COMMAND {$$=Adiciona_Seguinte($1, $2);}| COMMAND {$$=$1;};
+COMMAND_LIST:                   COMMAND_LIST COMMAND {$$=Adiciona_Seguinte($1, $2);}| COMMAND {$$=$1;} ;
 
 
 COMMAND:                        VARIABLE_DECLARATION {$$=NULL;}|  VARIABLE_ASSIGNMENT {$$=$1;}| FUNCTION_CALLING ','{$$=$1;} | RETURN_COMMAND {$$=$1;}| FLUX_CONTROL_COMMAND ',' {$$=$1;}| COMMAND_BLOCK ',' {$$=$1;};

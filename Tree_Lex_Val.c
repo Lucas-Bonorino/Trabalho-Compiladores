@@ -72,7 +72,11 @@ NODOAST* Adiciona_Seguinte(NODOAST *pai, NODOAST *seguinte)
     if(pai==NULL) return(seguinte);
   
     NODOAST *atual=pai->ultimo;
-
+    while(atual->seguinte!=NULL)
+    {
+        atual=atual->ultimo;
+    }
+    
     pai->ultimo=seguinte;
 
     atual->seguinte=seguinte;
@@ -103,8 +107,32 @@ void Imprime_Filho(NODOAST* nodo, NODOAST* filho)
     printf("%p, %p\n", nodo, filho);
 }
 
+void Imprime(NODOAST *raiz)
+{
+    int max_filhos=raiz->numero_filhos;
+
+    Imprime_Label(raiz);
+
+    if(max_filhos!=0)
+    {
+        for(int i=0;i<max_filhos;i++)
+        {
+            NODOAST *filho=raiz->filhos[i];
+            Imprime_Filho(raiz, filho);
+            Imprime(filho);
+        }
+    }
+
+    if(raiz->seguinte!=NULL)
+    {
+        Imprime_Filho(raiz,raiz->seguinte);
+        Imprime(raiz->seguinte);
+    }
+}
+
 void exporta (void *arvore)
 {
     NODOAST *raiz=(NODOAST*)arvore;
+    Imprime(raiz);
 
 }

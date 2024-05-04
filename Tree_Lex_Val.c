@@ -1,8 +1,10 @@
+//Por Lucas dos Santos Bonorino e Rafael Lacerda Busatta
 #include "Tree_Lex_Val.h"
 #include<string.h>
 #include<stdio.h>
 #include<stdlib.h>
 
+//Função para criação da estrutura dos dados dos tokens
 TOKENDATA* tokendata(char* token, int line_number, TOKEN_TYPE type)
 {
     TOKENDATA* valor_lexico;
@@ -14,7 +16,7 @@ TOKENDATA* tokendata(char* token, int line_number, TOKEN_TYPE type)
     return(valor_lexico);
 }
 
-
+//Função para criar as folhas da árvore
 NODOAST* Cria_folha(char* valor)
 {   
     NODOAST *folha;
@@ -28,7 +30,7 @@ NODOAST* Cria_folha(char* valor)
     return(folha);
 }
 
-
+//Função para criar os nodos que possuam filhos na árvore
 NODOAST* Cria_nodo(char* valor, NODOAST *filho1, NODOAST *filho2)
 {
     NODOAST *folha;
@@ -36,16 +38,21 @@ NODOAST* Cria_nodo(char* valor, NODOAST *filho1, NODOAST *filho2)
     folha->nome=strdup(valor);
     folha->numero_filhos=0;
 
+    //Trata do caso em que algum dos filhos é nulo
+    //Só aloca espaço para nodos não nulos
     if(filho1!=NULL) folha->numero_filhos+=1;
     if(filho2!=NULL) folha->numero_filhos+=1;
 
     folha->filhos=(NODOAST **)malloc(folha->numero_filhos*sizeof(NODOAST*));
 
     int i=0;
+    //Adiciona o filho
     if(filho1!=NULL) {folha->filhos[i]=filho1; i+=1;}
     if(filho2!=NULL) {folha->filhos[i]=filho2;}
 
     folha->seguinte=NULL;
+    //Serve para determinar o nodo como sendo o último de uma lista
+    //Caso seja necessário
     folha->ultimo=folha;
 
     return(folha);
@@ -53,13 +60,14 @@ NODOAST* Cria_nodo(char* valor, NODOAST *filho1, NODOAST *filho2)
 
 NODOAST* Adiciona_filho(NODOAST *pai, NODOAST *filho)
 {
-    
+    //Trata do caso em que algum dos dois(pai ou filho) é nulo
+    //Serve principalmente para edge cases em que o pai pode ser nulo
     if(filho==NULL) return(pai);
     if(pai==NULL && filho!=NULL) return(filho);
-    if(pai==NULL)  return(pai);
 
     pai->numero_filhos+=1;
 
+    //Realoca o espaço de memória para os filhos e adiciona o novo filho
     pai->filhos=(NODOAST **)realloc(pai->filhos, pai->numero_filhos*sizeof(NODOAST*));
     pai->filhos[pai->numero_filhos-1]=filho;
  
@@ -68,17 +76,24 @@ NODOAST* Adiciona_filho(NODOAST *pai, NODOAST *filho)
 
 NODOAST* Adiciona_Seguinte(NODOAST *pai, NODOAST *seguinte)
 {
-    
+    //Trata do edge case em que o pai é nulo
+    //Como, por exemplo, se ele tivesse de ser
+    //Uma declaração de variável
     if(pai==NULL) return(seguinte);
   
+    //Busca o último nodo da lista atual(de expressões, funções).
+    //A busca iterativa serve majoritariamente para casos de 
+    //blocos de comando Encadeados
     NODOAST *atual=pai->ultimo;
     while(atual->seguinte!=NULL)
     {
         atual=atual->ultimo;
     }
     
+    //Atualiza qual o último da lista do pai
     pai->ultimo=seguinte;
 
+    //Atualiza qual o nodo seguinte do item atual
     atual->seguinte=seguinte;
 
     return(pai);
@@ -107,29 +122,42 @@ void Imprime_Filho(NODOAST* nodo, NODOAST* filho)
     printf("%p, %p\n", nodo, filho);
 }
 
+//Função recursiva para imprimir os nodos
 void Imprime(NODOAST *raiz)
 {
     int max_filhos=raiz->numero_filhos;
-
+    //Primeiro imprime o label da raíz
     Imprime_Label(raiz);
 
+    //Se houverem filhos
     if(max_filhos!=0)
-    {
+    {   
+        //Para cada filho
         for(int i=0;i<max_filhos;i++)
         {
             NODOAST *filho=raiz->filhos[i];
+
+            //Imprime a relação hierárquica com o pai
             Imprime_Filho(raiz, filho);
+
+            //Faz o passo recursivo com o filho
             Imprime(filho);
         }
     }
 
+    //Se o nodo pertencer a uma lista
     if(raiz->seguinte!=NULL)
-    {
+    {   
+        //Imprime a relação hierárquica com o próximo
+        //nodo da lista
         Imprime_Filho(raiz,raiz->seguinte);
+
+        //Faz o passo recursivo com o nodo seguinte da lista
         Imprime(raiz->seguinte);
     }
 }
 
+//Função para exportar os nodos
 void exporta (void *arvore)
 {
     NODOAST *raiz=(NODOAST*)arvore;

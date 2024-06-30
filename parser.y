@@ -5,6 +5,7 @@ extern int get_line_number(void);
 int yylex(void);
 void yyerror (char const *mensagem);
 extern void *arvore;
+void *pilha_de_tabelas;
 %}
 
 %start PROGRAM
@@ -15,7 +16,8 @@ extern void *arvore;
     #include "Tree_Lex_Val.h"
 }
 
-%union{
+%union
+{
     TOKENDATA* valor_lex;
     NODOAST* nodo;
     char*    lexema;

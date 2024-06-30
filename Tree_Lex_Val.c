@@ -1,17 +1,18 @@
 //Por Lucas dos Santos Bonorino e Rafael Lacerda Busatta
 #include "Tree_Lex_Val.h"
-#include<string.h>
-#include<stdio.h>
-#include<stdlib.h>
+
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 //Função para criação da estrutura dos dados dos tokens
-TOKENDATA* tokendata(char* token, int line_number, TOKEN_TYPE type)
+TOKENDATA* tokendata(char* token, int line_number, TOKEN_NATURE type)
 {
     TOKENDATA* valor_lexico;
     valor_lexico=(TOKENDATA*)malloc(sizeof(TOKENDATA));
     valor_lexico->token=strdup(token);
     valor_lexico->Numero_Linha=line_number;
-    valor_lexico->token_type=type;
+    valor_lexico->natureza_token=type;
 
     return(valor_lexico);
 }
@@ -54,7 +55,7 @@ NODOAST* Cria_nodo(char* valor, NODOAST *filho1, NODOAST *filho2)
     //Serve para determinar o nodo como sendo o último de uma lista
     //Caso seja necessário
     folha->ultimo=folha;
-
+    
     return(folha);
 }
 
@@ -80,7 +81,7 @@ NODOAST* Adiciona_Seguinte(NODOAST *pai, NODOAST *seguinte)
     //Como, por exemplo, se ele tivesse de ser
     //Uma declaração de variável
     if(pai==NULL) return(seguinte);
-  
+    if(seguinte==NULL) return(pai);
     //Busca o último nodo da lista atual(de expressões, funções).
     //A busca iterativa serve majoritariamente para casos de 
     //blocos de comando Encadeados
@@ -89,7 +90,7 @@ NODOAST* Adiciona_Seguinte(NODOAST *pai, NODOAST *seguinte)
     {
         atual=atual->ultimo;
     }
-    
+
     //Atualiza qual o último da lista do pai
     pai->ultimo=seguinte;
 
@@ -161,6 +162,10 @@ void Imprime(NODOAST *raiz)
 void exporta (void *arvore)
 {
     NODOAST *raiz=(NODOAST*)arvore;
-    Imprime(raiz);
+    
+    if(raiz!=NULL)
+    {
+        Imprime(raiz);
+    }
 
 }

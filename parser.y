@@ -5,7 +5,7 @@ extern int get_line_number(void);
 int yylex(void);
 void yyerror (char const *mensagem);
 extern void *arvore;
-void *pilha_de_tabelas;
+void *pilha_de_tabelas=NULL;
 %}
 
 %start PROGRAM
@@ -21,11 +21,12 @@ void *pilha_de_tabelas;
     TOKENDATA* valor_lex;
     NODOAST* nodo;
     char*    lexema;
+    int      D_Type;
 }
 
-%token TK_PR_INT
-%token TK_PR_FLOAT
-%token TK_PR_BOOL
+%token TK_PR_INT    
+%token TK_PR_FLOAT  
+%token TK_PR_BOOL   
 %token TK_PR_IF
 %token TK_PR_ELSE
 %token TK_PR_WHILE
@@ -42,6 +43,8 @@ void *pilha_de_tabelas;
 %token <valor_lex> TK_LIT_FALSE
 %token <valor_lex> TK_LIT_TRUE
 %token TK_ERRO
+
+%type  <D_Type>    DATA_TYPE
 
 %type  <nodo>      FUNCTION_HEADER
 %type  <nodo>      PROGRAM_COMPONENT_LIST
@@ -76,7 +79,7 @@ void *pilha_de_tabelas;
 
 %%
 
-PROGRAM:                        PROGRAM_COMPONENT_LIST {arvore=$1;}|  %empty{arvore=NULL;};
+PROGRAM:                        EMPILHA PROGRAM_COMPONENT_LIST DESEMPILHA{arvore=$2;}|  %empty{arvore=NULL;};
 
 
 PROGRAM_COMPONENT_LIST:         PROGRAM_COMPONENT_LIST PROGRAM_COMPONENT {$$=Adiciona_Seguinte($1, $2);}| PROGRAM_COMPONENT {$$=$1;};
@@ -85,16 +88,16 @@ PROGRAM_COMPONENT_LIST:         PROGRAM_COMPONENT_LIST PROGRAM_COMPONENT {$$=Adi
 PROGRAM_COMPONENT:              VARIABLE_DECLARATION {$$=NULL;}| FUNCTION_DECLARATION {$$=$1;};  
 
 
-VARIABLE_DECLARATION:           DATA_TYPE VARIABLE_LIST ',' ;
+VARIABLE_DECLARATION:           DATA_TYPE VARIABLE_LIST ',' {/*Adicionar função que pega todos itens da cauda sem tipo definido e define o tipo deles*/};
 
 
-VARIABLE_LIST:                  VARIABLE_LIST ';' TK_IDENTIFICADOR | TK_IDENTIFICADOR;
+VARIABLE_LIST:                  VARIABLE_LIST ';' TK_IDENTIFICADOR {Cria_e_Adiciona_Registro_Variavel($3->token, VARIAVEL, UNKNOWN, get_line_number(), pilha_de_tabelas);}| TK_IDENTIFICADOR {Cria_e_Adiciona_Registro_Variavel($1->token,VARIAVEL, UNKNOWN, get_line_number(), pilha_de_tabelas);};
 
 
-FUNCTION_DECLARATION:           FUNCTION_HEADER COMMAND_BLOCK {$$=Adiciona_filho($1, $2);};
+FUNCTION_DECLARATION:           FUNCTION_HEADER COMMAND_BLOCK DESEMPILHA {$$=Adiciona_filho($1, $2);};
 
 
-FUNCTION_HEADER:                FUNCTION_PARAMETERS TK_OC_OR DATA_TYPE '/' TK_IDENTIFICADOR {$$=Cria_folha($5->token);};
+FUNCTION_HEADER:                EMPILHA FUNCTION_PARAMETERS TK_OC_OR DATA_TYPE '/' TK_IDENTIFICADOR {$$=Cria_folha($6->token); Cria_e_Adiciona_Registro_Funcao($6->token, FUNCAO, $4, get_line_number(), pilha_de_tabelas);};
 
 
 FUNCTION_PARAMETERS:            '(' PARAMETERS ')';
@@ -104,7 +107,7 @@ PARAMETERS:                     PARAMETER_LIST | %empty ;
 
 PARAMETER_LIST:                 PARAMETER_LIST ';' PARAMETER | PARAMETER;
 
-PARAMETER:                      DATA_TYPE TK_IDENTIFICADOR; 
+PARAMETER:                      DATA_TYPE TK_IDENTIFICADOR {Cria_e_Adiciona_Registro_Variavel($2->token, IDENTIFICADOR, $1, get_line_number(), pilha_de_tabelas);}; 
 
 
 COMMAND_BLOCK:                  '{' COMMAND_LIST '}' {$$=$2;} | '{' '}' {$$=NULL;};
@@ -113,13 +116,13 @@ COMMAND_BLOCK:                  '{' COMMAND_LIST '}' {$$=$2;} | '{' '}' {$$=NULL
 COMMAND_LIST:                   COMMAND_LIST COMMAND {$$=Adiciona_Seguinte($1, $2);}| COMMAND {$$=$1;} ;
 
 
-COMMAND:                        VARIABLE_DECLARATION {$$=NULL;}|  VARIABLE_ASSIGNMENT {$$=$1;}| FUNCTION_CALLING ','{$$=$1;} | RETURN_COMMAND {$$=$1;}| FLUX_CONTROL_COMMAND ',' {$$=$1;}| COMMAND_BLOCK ',' {$$=$1;};
+COMMAND:                        VARIABLE_DECLARATION {$$=NULL;}|  VARIABLE_ASSIGNMENT {$$=$1;}| FUNCTION_CALLING ','{$$=$1;} | RETURN_COMMAND {$$=$1;}| FLUX_CONTROL_COMMAND ',' {$$=$1;}| EMPILHA COMMAND_BLOCK ',' DESEMPILHA {$$=$2;};
 
 
 VARIABLE_ASSIGNMENT:            TK_IDENTIFICADOR '=' EXPRESSION_7TH ',' {$$=Cria_nodo("=", Cria_folha($1->token), $3);};
 
 
-FUNCTION_CALLING:               TK_IDENTIFICADOR '(' ARGUMENTS ')' {$$=Cria_nodo(StringCat("call ",$1->token), $3, NULL);};
+FUNCTION_CALLING:               TK_IDENTIFICADOR '(' ARGUMENTS ')' {$$=Cria_nodo(StringCat("call ",$1->token), $3, NULL); Verifica_Uso($1->token, FUNCAO, UNKNOWN,get_line_number(), pilha_de_tabelas);};
 
 
 ARGUMENTS:                      ARGUMENT_LIST {$$=$1;}| %empty {$$=NULL;}; 
@@ -171,14 +174,17 @@ OPERAND:                        TK_LIT_FALSE {$$=Cria_folha($1->token);}
                                 | TK_LIT_TRUE {$$=Cria_folha($1->token);}
                                 | TK_LIT_INT {$$=Cria_folha($1->token);}
                                 | TK_LIT_FLOAT {$$=Cria_folha($1->token);}
-                                | TK_IDENTIFICADOR {$$=Cria_folha($1->token);} 
+                                | TK_IDENTIFICADOR {$$=Cria_folha($1->token); Verifica_Uso($1->token, VARIAVEL, UNKNOWN,get_line_number(), pilha_de_tabelas);} 
                                 | FUNCTION_CALLING {$$=$1;}
                                 | '(' EXPRESSION_7TH ')'{$$=$2;};  
 
 
 
-DATA_TYPE:                      TK_PR_FLOAT | TK_PR_INT | TK_PR_BOOL;
-           
+DATA_TYPE:                      TK_PR_FLOAT {$$=FLOAT;}| TK_PR_INT {$$=INT;}| TK_PR_BOOL{$$=BOOL;};
+
+EMPILHA:                        %empty {pilha_de_tabelas=Empilha_Tabela(pilha_de_tabelas);};
+DESEMPILHA:                     %empty {pilha_de_tabelas=Desempilha_Tabela(pilha_de_tabelas);};
+
 %%
 
 void yyerror(char const *mensagem)

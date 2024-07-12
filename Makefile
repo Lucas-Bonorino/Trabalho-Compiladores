@@ -14,7 +14,7 @@ OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 all: parser scanner generate_obj etapa4 clean
 
 parser: parser.y
-	bison -d parser.y
+	bison -d parser.y 
 
 scanner: scanner.l
 	flex scanner.l

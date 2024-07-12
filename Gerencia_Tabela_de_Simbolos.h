@@ -13,7 +13,7 @@ void Adicionar_Declaracao_de_Identificador(REGISTRO_SIMBOLO *registro, PILHA *ta
 //Além de verificar se a declaração desse símbolo ainda não foi feita no escopo 
 //avaliado(ERR_UNDECLARED), além de verificar erros semânticos de uso do 
 //Identificador(ERR_VARIABLE e ERR_FUNCTION)
-void Uso_de_Identificador(REGISTRO_SIMBOLO *registro, PILHA *tabelas);
+DATA_TYPE Uso_de_Identificador(REGISTRO_SIMBOLO *registro, PILHA *tabelas);
 
 //Cria uma tabela de símbolos
 TABELA_DE_SIMBOLOS *Cria_Tabela();
@@ -30,7 +30,9 @@ void Cria_e_Adiciona_Registro_Funcao(char *valor, TOKEN_NATURE natureza_token, D
 
 void Cria_e_Adiciona_Registro_Variavel(char *valor, TOKEN_NATURE natureza_token, DATA_TYPE tipo_do_token,int linha, PILHA *pilha);
 
-void Verifica_Uso(char *valor, TOKEN_NATURE natureza_token, DATA_TYPE tipo_do_token,int linha, PILHA *pilha);
+DATA_TYPE Verifica_Uso(char *valor, TOKEN_NATURE natureza_token, DATA_TYPE tipo_do_token,int linha, PILHA *pilha);
 
 void Imprime_Tabela(TABELA_DE_SIMBOLOS *tabela);
+
+void Tipagem_Lista_Variaveis(PILHA *tabelas, DATA_TYPE tipo);
 

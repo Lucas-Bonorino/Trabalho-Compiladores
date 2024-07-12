@@ -18,7 +18,7 @@ TOKENDATA* tokendata(char* token, int line_number, TOKEN_NATURE type)
 }
 
 //Função para criar as folhas da árvore
-NODOAST* Cria_folha(char* valor)
+NODOAST* Cria_folha(char* valor, DATA_TYPE tipo)
 {   
     NODOAST *folha;
     folha=(NODOAST*)malloc(sizeof(NODOAST));
@@ -27,17 +27,19 @@ NODOAST* Cria_folha(char* valor)
     folha->filhos=NULL;
     folha->seguinte=NULL;
     folha->ultimo=folha;
+    folha->tipo_do_nodo=tipo;
 
     return(folha);
 }
 
 //Função para criar os nodos que possuam filhos na árvore
-NODOAST* Cria_nodo(char* valor, NODOAST *filho1, NODOAST *filho2)
+NODOAST* Cria_nodo(char* valor, NODOAST *filho1, NODOAST *filho2, DATA_TYPE tipo)
 {
     NODOAST *folha;
     folha=(NODOAST*)malloc(sizeof(NODOAST));
     folha->nome=strdup(valor);
     folha->numero_filhos=0;
+    folha->tipo_do_nodo=tipo;
 
     //Trata do caso em que algum dos filhos é nulo
     //Só aloca espaço para nodos não nulos

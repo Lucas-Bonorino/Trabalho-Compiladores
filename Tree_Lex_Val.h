@@ -4,10 +4,10 @@
 TOKENDATA* tokendata(char* token, int line_number, TOKEN_NATURE type);
 
 //Função para criar as folhas da árvore
-NODOAST* Cria_folha(char* valor);
+NODOAST* Cria_folha(char* valor, DATA_TYPE tipo);
 
 //Função para criar os nodos que possuam filhos na árvore
-NODOAST* Cria_nodo(char* valor, NODOAST *filho1, NODOAST *filho2);
+NODOAST* Cria_nodo(char* valor, NODOAST *filho1, NODOAST *filho2, DATA_TYPE tipo);
 
 //Função para adicionar o nodo seguinte em listas(como listas de comando, função, expressão, etc)
 NODOAST* Adiciona_Seguinte(NODOAST *pai, NODOAST *seguinte);

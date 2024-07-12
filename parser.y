@@ -88,7 +88,7 @@ PROGRAM_COMPONENT_LIST:         PROGRAM_COMPONENT_LIST PROGRAM_COMPONENT {$$=Adi
 PROGRAM_COMPONENT:              VARIABLE_DECLARATION {$$=NULL;}| FUNCTION_DECLARATION {$$=$1;};  
 
 
-VARIABLE_DECLARATION:           DATA_TYPE VARIABLE_LIST ',' {/*Adicionar função que pega todos itens da cauda sem tipo definido e define o tipo deles*/};
+VARIABLE_DECLARATION:           DATA_TYPE VARIABLE_LIST ',' {Tipagem_Lista_Variaveis(pilha_de_tabelas, $1);};
 
 
 VARIABLE_LIST:                  VARIABLE_LIST ';' TK_IDENTIFICADOR {Cria_e_Adiciona_Registro_Variavel($3->token, VARIAVEL, UNKNOWN, get_line_number(), pilha_de_tabelas);}| TK_IDENTIFICADOR {Cria_e_Adiciona_Registro_Variavel($1->token,VARIAVEL, UNKNOWN, get_line_number(), pilha_de_tabelas);};
@@ -97,7 +97,7 @@ VARIABLE_LIST:                  VARIABLE_LIST ';' TK_IDENTIFICADOR {Cria_e_Adici
 FUNCTION_DECLARATION:           FUNCTION_HEADER COMMAND_BLOCK DESEMPILHA {$$=Adiciona_filho($1, $2);};
 
 
-FUNCTION_HEADER:                EMPILHA FUNCTION_PARAMETERS TK_OC_OR DATA_TYPE '/' TK_IDENTIFICADOR {$$=Cria_folha($6->token); Cria_e_Adiciona_Registro_Funcao($6->token, FUNCAO, $4, get_line_number(), pilha_de_tabelas);};
+FUNCTION_HEADER:                EMPILHA FUNCTION_PARAMETERS TK_OC_OR DATA_TYPE '/' TK_IDENTIFICADOR {$$=Cria_folha($6->token, $4); Cria_e_Adiciona_Registro_Funcao($6->token, FUNCAO, $4, get_line_number(), pilha_de_tabelas);};
 
 
 FUNCTION_PARAMETERS:            '(' PARAMETERS ')';
@@ -119,62 +119,62 @@ COMMAND_LIST:                   COMMAND_LIST COMMAND {$$=Adiciona_Seguinte($1, $
 COMMAND:                        VARIABLE_DECLARATION {$$=NULL;}|  VARIABLE_ASSIGNMENT {$$=$1;}| FUNCTION_CALLING ','{$$=$1;} | RETURN_COMMAND {$$=$1;}| FLUX_CONTROL_COMMAND ',' {$$=$1;}| EMPILHA COMMAND_BLOCK ',' DESEMPILHA {$$=$2;};
 
 
-VARIABLE_ASSIGNMENT:            TK_IDENTIFICADOR '=' EXPRESSION_7TH ',' {$$=Cria_nodo("=", Cria_folha($1->token), $3);};
+VARIABLE_ASSIGNMENT:            TK_IDENTIFICADOR '=' EXPRESSION_7TH ',' {int tipo= Verifica_Uso($1->token, VARIAVEL, UNKNOWN, get_line_number(), pilha_de_tabelas); $$=Cria_nodo("=", Cria_folha($1->token, tipo), $3, tipo);};
 
 
-FUNCTION_CALLING:               TK_IDENTIFICADOR '(' ARGUMENTS ')' {$$=Cria_nodo(StringCat("call ",$1->token), $3, NULL); Verifica_Uso($1->token, FUNCAO, UNKNOWN,get_line_number(), pilha_de_tabelas);};
+FUNCTION_CALLING:               TK_IDENTIFICADOR '(' ARGUMENTS ')' {int tipo=Verifica_Uso($1->token, FUNCAO, UNKNOWN,get_line_number(), pilha_de_tabelas);$$=Cria_nodo(StringCat("call ",$1->token), $3, NULL, tipo);};
 
 
 ARGUMENTS:                      ARGUMENT_LIST {$$=$1;}| %empty {$$=NULL;}; 
 ARGUMENT_LIST:                  ARGUMENT_LIST ';' EXPRESSION_7TH    {$$=Adiciona_Seguinte($1, $3);}| EXPRESSION_7TH {$$=$1;};
 
 
-RETURN_COMMAND:                 TK_PR_RETURN EXPRESSION_7TH ',' {$$=Cria_nodo("return", $2, NULL);};
+RETURN_COMMAND:                 TK_PR_RETURN EXPRESSION_7TH ',' {$$=Cria_nodo("return", $2, NULL, UNKNOWN);};
 
 
 FLUX_CONTROL_COMMAND:           CONDITIONAL_STRUCTURE {$$=$1;}| ITERATIVE_STRUCTURE {$$=$1;};
 
-CONDITIONAL_STRUCTURE:          TK_PR_IF '(' EXPRESSION_7TH ')' COMMAND_BLOCK OPTIONAL_ELSE_STRUCTURE {$$=Adiciona_filho(Cria_nodo("if", $3, $5),$6);};
+CONDITIONAL_STRUCTURE:          TK_PR_IF '(' EXPRESSION_7TH ')' COMMAND_BLOCK OPTIONAL_ELSE_STRUCTURE {$$=Adiciona_filho(Cria_nodo("if", $3, $5, UNKNOWN),$6);};
 
 OPTIONAL_ELSE_STRUCTURE:        TK_PR_ELSE COMMAND_BLOCK {$$=$2;}| %empty {$$=NULL;};
 
 
-ITERATIVE_STRUCTURE:            TK_PR_WHILE '(' EXPRESSION_7TH ')' COMMAND_BLOCK  {$$=Cria_nodo("while", $3, $5);};
+ITERATIVE_STRUCTURE:            TK_PR_WHILE '(' EXPRESSION_7TH ')' COMMAND_BLOCK  {$$=Cria_nodo("while", $3, $5, UNKNOWN);};
 
 
-EXPRESSION_7TH:                     EXPRESSION_7TH TK_OC_OR EXPRESSION_6TH       {$$=Cria_nodo("|", $1, $3);}| EXPRESSION_6TH {$$=$1;};
+EXPRESSION_7TH:                     EXPRESSION_7TH TK_OC_OR EXPRESSION_6TH       {$$=Cria_nodo("|", $1, $3,inferencia_de_tipo_expressao($1->tipo_do_nodo, $3->tipo_do_nodo));}| EXPRESSION_6TH {$$=$1;};
 
-EXPRESSION_6TH:                     EXPRESSION_6TH TK_OC_AND EXPRESSION_5TH      {$$=Cria_nodo("&", $1, $3);}| EXPRESSION_5TH {$$=$1;};
+EXPRESSION_6TH:                     EXPRESSION_6TH TK_OC_AND EXPRESSION_5TH      {$$=Cria_nodo("&", $1, $3,inferencia_de_tipo_expressao($1->tipo_do_nodo, $3->tipo_do_nodo));}| EXPRESSION_5TH {$$=$1;};
  
-EXPRESSION_5TH:                     EXPRESSION_5TH EQ_COMP_OP EXPRESSION_4TH     {$$=Cria_nodo($2, $1, $3);}| EXPRESSION_4TH {$$=$1;};
+EXPRESSION_5TH:                     EXPRESSION_5TH EQ_COMP_OP EXPRESSION_4TH     {$$=Cria_nodo($2, $1, $3,inferencia_de_tipo_expressao($1->tipo_do_nodo, $3->tipo_do_nodo));}| EXPRESSION_4TH {$$=$1;};
 EQ_COMP_OP:                         TK_OC_EQ {$$="==";}
                                     | TK_OC_NE {$$="!=";};
 
-EXPRESSION_4TH:                     EXPRESSION_4TH COMP_OP EXPRESSION_3RD        {$$=Cria_nodo($2, $1, $3);}| EXPRESSION_3RD {$$=$1;};
+EXPRESSION_4TH:                     EXPRESSION_4TH COMP_OP EXPRESSION_3RD        {$$=Cria_nodo($2, $1, $3,inferencia_de_tipo_expressao($1->tipo_do_nodo, $3->tipo_do_nodo));}| EXPRESSION_3RD {$$=$1;};
 COMP_OP:                            TK_OC_GE {$$=">=";}
                                     | TK_OC_LE {$$="<=";}
                                     | '<' {$$="<";}
                                     | '>' {$$=">";};
 
-EXPRESSION_3RD:                     EXPRESSION_3RD SUM_SUB_OP EXPRESSION_2ND     {$$=Cria_nodo($2, $1, $3);}| EXPRESSION_2ND {$$=$1;};
+EXPRESSION_3RD:                     EXPRESSION_3RD SUM_SUB_OP EXPRESSION_2ND     {$$=Cria_nodo($2, $1, $3,inferencia_de_tipo_expressao($1->tipo_do_nodo, $3->tipo_do_nodo));}| EXPRESSION_2ND {$$=$1;};
 SUM_SUB_OP:                         '+' {$$="+";}
                                     | '-' {$$="-";};
 
-EXPRESSION_2ND:                     EXPRESSION_2ND DIV_MUL_MOD_OP EXPRESSION_1ST {$$=Cria_nodo($2, $1, $3);}| EXPRESSION_1ST {$$=$1;};
+EXPRESSION_2ND:                     EXPRESSION_2ND DIV_MUL_MOD_OP EXPRESSION_1ST {$$=Cria_nodo($2, $1, $3,inferencia_de_tipo_expressao($1->tipo_do_nodo, $3->tipo_do_nodo));}| EXPRESSION_1ST {$$=$1;};
 DIV_MUL_MOD_OP:                     '*' {$$="*";}
                                     | '/' {$$="/";}
                                     | '%'{$$="%";};
 
-EXPRESSION_1ST:                     UNARY_OP EXPRESSION_1ST                      {$$=Cria_nodo($1, $2, NULL);}| OPERAND  {$$=$1;};
+EXPRESSION_1ST:                     UNARY_OP EXPRESSION_1ST                      {$$=Cria_nodo($1, $2, NULL, $2->tipo_do_nodo);}| OPERAND  {$$=$1;};
 UNARY_OP:                           '-' {$$="-";}| '!' {$$="!";};
 
 
 
-OPERAND:                        TK_LIT_FALSE {$$=Cria_folha($1->token);}
-                                | TK_LIT_TRUE {$$=Cria_folha($1->token);}
-                                | TK_LIT_INT {$$=Cria_folha($1->token);}
-                                | TK_LIT_FLOAT {$$=Cria_folha($1->token);}
-                                | TK_IDENTIFICADOR {$$=Cria_folha($1->token); Verifica_Uso($1->token, VARIAVEL, UNKNOWN,get_line_number(), pilha_de_tabelas);} 
+OPERAND:                        TK_LIT_FALSE {$$=Cria_folha($1->token, BOOL);}
+                                | TK_LIT_TRUE {$$=Cria_folha($1->token, BOOL);}
+                                | TK_LIT_INT {$$=Cria_folha($1->token, INT);}
+                                | TK_LIT_FLOAT {$$=Cria_folha($1->token, FLOAT);}
+                                | TK_IDENTIFICADOR {int tipo= Verifica_Uso($1->token, VARIAVEL, UNKNOWN, get_line_number(), pilha_de_tabelas); $$=Cria_folha($1->token, tipo);} 
                                 | FUNCTION_CALLING {$$=$1;}
                                 | '(' EXPRESSION_7TH ')'{$$=$2;};  
 

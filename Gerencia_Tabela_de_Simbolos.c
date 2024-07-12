@@ -47,7 +47,7 @@ void Mensagem_Erro_Semantica_Identificador(REGISTRO_SIMBOLO *registro_uso,REGIST
     }
 }
 
-void Uso_de_Identificador(REGISTRO_SIMBOLO *registro, PILHA *tabelas)
+DATA_TYPE Uso_de_Identificador(REGISTRO_SIMBOLO *registro, PILHA *tabelas)
 {
     PILHA *tabela_atual=tabelas;
     REGISTRO_SIMBOLO *registro_tabela;
@@ -67,7 +67,7 @@ void Uso_de_Identificador(REGISTRO_SIMBOLO *registro, PILHA *tabelas)
                 exit(registro_tabela->natureza_token);
             }
 
-            return;
+            return(registro_tabela->tipo_simbolo);
         }
         tabela_atual=tabela_atual->proxima;
     }
@@ -119,11 +119,11 @@ void Cria_e_Adiciona_Registro_Funcao(char *valor, TOKEN_NATURE natureza_token, D
     Adicionar_Declaracao_de_Identificador(registro, atual);
 }
 
-void Verifica_Uso(char *valor, TOKEN_NATURE natureza_token, DATA_TYPE tipo_do_token,int linha, PILHA *pilha)
+DATA_TYPE Verifica_Uso(char *valor, TOKEN_NATURE natureza_token, DATA_TYPE tipo_do_token,int linha, PILHA *pilha)
 {
     REGISTRO_SIMBOLO *registro=Criar_Registro(valor, natureza_token, tipo_do_token, linha);
 
-    Uso_de_Identificador(registro, pilha);
+    return(Uso_de_Identificador(registro, pilha));
 }
 
 void Imprime_Tabela(PILHA *tabelas)
@@ -141,4 +141,19 @@ void Imprime_Tabela(PILHA *tabelas)
         atual=atual->prox;
     }
     printf("\n");
+}
+
+void Tipagem_Lista_Variaveis(PILHA *tabelas, DATA_TYPE tipo)
+{
+    TABELA_DE_SIMBOLOS *atual=tabelas->tabela;
+
+    while(atual!=NULL)
+    {
+        if(atual->registro->tipo_simbolo==UNKNOWN)
+        {
+            atual->registro->tipo_simbolo=tipo;
+        }
+        
+        atual=atual->prox;
+    }
 }

@@ -107,7 +107,7 @@ PARAMETERS:                     PARAMETER_LIST | %empty ;
 
 PARAMETER_LIST:                 PARAMETER_LIST ';' PARAMETER | PARAMETER;
 
-PARAMETER:                      DATA_TYPE TK_IDENTIFICADOR {Cria_e_Adiciona_Registro_Variavel($2->token, IDENTIFICADOR, $1, get_line_number(), pilha_de_tabelas);}; 
+PARAMETER:                      DATA_TYPE TK_IDENTIFICADOR {Cria_e_Adiciona_Registro_Variavel($2->token, VARIAVEL, $1, get_line_number(), pilha_de_tabelas);}; 
 
 
 COMMAND_BLOCK:                  '{' COMMAND_LIST '}' {$$=$2;} | '{' '}' {$$=NULL;};

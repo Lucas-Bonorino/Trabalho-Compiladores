@@ -17,19 +17,15 @@ REGISTRO_SIMBOLO *Criar_Registro(char *valor, TOKEN_NATURE natureza_token, DATA_
 
 void Adicionar_Declaracao_de_Identificador(REGISTRO_SIMBOLO *registro, PILHA *tabelas)
 {
-    PILHA *tabela_atual=tabelas;
+    PILHA *tabela_topo=tabelas;
     REGISTRO_SIMBOLO *registro_tabela;
 
-    while(tabela_atual!=NULL)
+    //Se o identificado já tiver sido declarado
+    if(registro_tabela=Ja_Declarado(registro->token, tabela_topo->tabela))
     {
-        //Se o identificado já tiver sido declarado
-        if(registro_tabela=Ja_Declarado(registro->token, tabela_atual->tabela))
-        {
-            //Imprime mensagem de erro
-            printf("Erro: redeclaracao do identificador \"%s\", na linha: %d, originalmente declarado na linha: %d\nexit code 11: ERR_DECLARED\n", registro->token, registro->Numero_Linha, registro_tabela->Numero_Linha);
-            exit (ERR_DECLARED);
-        }
-        tabela_atual=tabela_atual->proxima;
+        //Imprime mensagem de erro
+        printf("Erro: redeclaracao do identificador \"%s\", na linha: %d, originalmente declarado na linha: %d\nexit code 11: ERR_DECLARED\n", registro->token, registro->Numero_Linha, registro_tabela->Numero_Linha);
+        exit (ERR_DECLARED);
     }
 
     Adiciona_Registro(registro, tabelas->tabela);

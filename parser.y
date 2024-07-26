@@ -119,7 +119,7 @@ COMMAND_LIST:                   COMMAND_LIST COMMAND {$$=Adiciona_Seguinte($1, $
 COMMAND:                        VARIABLE_DECLARATION {$$=NULL;}|  VARIABLE_ASSIGNMENT {$$=$1;}| FUNCTION_CALLING ','{$$=$1;} | RETURN_COMMAND {$$=$1;}| FLUX_CONTROL_COMMAND ',' {$$=$1;}| EMPILHA COMMAND_BLOCK ',' DESEMPILHA {$$=$2;};
 
 
-VARIABLE_ASSIGNMENT:            TK_IDENTIFICADOR '=' EXPRESSION_7TH ',' {REGISTRO_SIMBOLO *reg= Verifica_Uso($1->token, VARIAVEL, UNKNOWN, get_line_number(), pilha_de_tabelas); $$=Cria_nodo("=", Cria_folha($1->token, reg->tipo_simbolo), $3, reg->tipo_simbolo);};
+VARIABLE_ASSIGNMENT:            TK_IDENTIFICADOR '=' EXPRESSION_7TH ',' {REGISTRO_SIMBOLO *reg= Verifica_Uso($1->token, VARIAVEL, UNKNOWN, get_line_number(), pilha_de_tabelas); $$=Cria_nodo("=", Cria_folha($1->token, reg->tipo_simbolo), $3, reg->tipo_simbolo); Adiciona_Codigo($$,Atribution($3->codigo, reg->Deslocamento_Endereco, reg->escopo));};
 
 
 FUNCTION_CALLING:               TK_IDENTIFICADOR '(' ARGUMENTS ')' {REGISTRO_SIMBOLO *reg=Verifica_Uso($1->token, FUNCAO, UNKNOWN,get_line_number(), pilha_de_tabelas);$$=Cria_nodo(StringCat("call ",$1->token), $3, NULL, reg->tipo_simbolo);};
@@ -134,7 +134,7 @@ RETURN_COMMAND:                 TK_PR_RETURN EXPRESSION_7TH ',' {$$=Cria_nodo("r
 
 FLUX_CONTROL_COMMAND:           CONDITIONAL_STRUCTURE {$$=$1;}| ITERATIVE_STRUCTURE {$$=$1;};
 
-CONDITIONAL_STRUCTURE:          TK_PR_IF '(' EXPRESSION_7TH ')' COMMAND_BLOCK OPTIONAL_ELSE_STRUCTURE {$$=Adiciona_filho(Cria_nodo("if", $3, $5, UNKNOWN),$6);};
+CONDITIONAL_STRUCTURE:          TK_PR_IF '(' EXPRESSION_7TH ')' COMMAND_BLOCK OPTIONAL_ELSE_STRUCTURE {$$=Adiciona_filho(Cria_nodo("if", $3, $5, UNKNOWN),$6); Adiciona_Codigo($$, Conditional_Flux($3->codigo, Cria_Label(), Cria_Label()));};
 
 OPTIONAL_ELSE_STRUCTURE:        TK_PR_ELSE COMMAND_BLOCK {$$=$2;}| %empty {$$=NULL;};
 
@@ -170,8 +170,8 @@ UNARY_OP:                           '-' {$$="-";}| '!' {$$="!";};
 
 
 
-OPERAND:                        TK_LIT_FALSE {$$=Cria_folha($1->token, BOOL);}
-                                | TK_LIT_TRUE {$$=Cria_folha($1->token, BOOL);}
+OPERAND:                        TK_LIT_FALSE {$$=Cria_folha($1->token, BOOL); Adiciona_Codigo($$, Load_Literal("0"));}
+                                | TK_LIT_TRUE {$$=Cria_folha($1->token, BOOL); Adiciona_Codigo($$, Load_Literal("1"));}
                                 | TK_LIT_INT {$$=Cria_folha($1->token, INT); Adiciona_Codigo($$, Load_Literal($1->token));}
                                 | TK_LIT_FLOAT {$$=Cria_folha($1->token, FLOAT);}
                                 | TK_IDENTIFICADOR {REGISTRO_SIMBOLO *reg= Verifica_Uso($1->token, VARIAVEL, UNKNOWN, get_line_number(), pilha_de_tabelas); $$=Cria_folha($1->token, reg->tipo_simbolo); Adiciona_Codigo($$, Load_Var(reg->Deslocamento_Endereco, reg->escopo));} 

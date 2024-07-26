@@ -40,7 +40,7 @@ void Escreve_Codigo(OPERATION *operacao)
         case NOP:    printf("nop\n"); break;
         case ADD:    printf("add %s, %s => %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target); break;
         case SUB:    printf("sub %s, %s => %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target); break;
-        case MUL:    printf("mul %s, %s => %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target); break;
+        case MULT:   printf("mult %s, %s => %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target); break;
         case DIV:    printf("div %s, %s => %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target); break;
         case OR:     printf("or %s, %s => %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target); break;
         case AND:    printf("and %s, %s => %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target); break;
@@ -50,6 +50,7 @@ void Escreve_Codigo(OPERATION *operacao)
         case LOADAI: printf("loadAI %s, %s => %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target); break;
         case LOADA0: printf("loadA0 %s, %s => %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target); break;
         case STORE:  printf("store %s => %s\n", operacao->parameters[0], operacao->target); break;
+        case STOREAI:printf("storeAI %s => %s, %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target); break;
         case STOREA0:printf("storeA0 %s => %s, %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target); break;
         case I2I:    printf("i2i %s => %s\n", operacao->parameters[0], operacao->target); break;
         case JUMPI:  printf("jumpI -> %s\n", operacao->parameters[0]); break;
@@ -124,7 +125,7 @@ int Return_OP(char *desired_op)
 
 PROGRAM *Binary_Operation(char *operation_type,PROGRAM *operand1, PROGRAM *operand2)
 {
-    const int iloc_operation[]={ ADD ,SUB, MUL, DIV, OR, AND, CMP_LT, CMP_LE, CMP_GT, CMP_GE, CMP_EQ, CMP_NE}; 
+    const int iloc_operation[]={ ADD ,SUB, MULT, DIV, OR, AND, CMP_LT, CMP_LE, CMP_GT, CMP_GE, CMP_EQ, CMP_NE}; 
 
     OPERATION *operacao;
     operacao=(OPERATION*)malloc(sizeof(OPERATION));
@@ -135,6 +136,40 @@ PROGRAM *Binary_Operation(char *operation_type,PROGRAM *operand1, PROGRAM *opera
 
     operacao->parameters[0]=strdup(operand1->operation->target);
     operacao->parameters[1]=strdup(operand2->operation->target);
+
+    return(Create_Operation(operacao));
+}
+
+PROGRAM *Atribution(PROGRAM *expression, int Deslocamento, ESCOPO escopo_var)
+{
+    const char *registers[]={"rbss", "rfp"};
+    OPERATION *operacao;
+    operacao=(OPERATION*)malloc(sizeof(OPERATION));
+
+    char *imediato;
+    imediato=(char*)malloc(sizeof(char)*BUFFER_SIZE);
+    sprintf(imediato, "%d", Deslocamento);
+
+    operacao->instruction=STOREAI;
+
+    operacao->parameters[0]=strdup(expression->operation->target);
+    operacao->parameters[1]=strdup(registers[escopo_var]);
+    operacao->target=imediato;
+
+    return(Create_Operation(operacao));
+}
+
+PROGRAM *Conditional_Flux(PROGRAM *expression, char *label1, char *label2)
+{
+    OPERATION *operacao;
+
+    operacao=(OPERATION*)malloc(sizeof(OPERATION));
+
+    operacao->instruction=CBR;
+
+    operacao->parameters[0]=strdup(expression->operation->target);
+    operacao->parameters[1]=strdup(label1);
+    operacao->target=strdup(label2);
 
     return(Create_Operation(operacao));
 }

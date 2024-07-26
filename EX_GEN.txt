@@ -1,0 +1,13 @@
+int dem, 
+
+float dm,
+
+() | int / main
+{
+    int boreas, 
+    float d,
+    dem=1,
+    d=boreas+3+5-0*3/dem+dm,
+    dm=d,
+    boreas=d-1,
+}

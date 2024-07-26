@@ -3,8 +3,9 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#define DESLOC_VAL 4
 
-REGISTRO_SIMBOLO *Criar_Registro(char *valor, TOKEN_NATURE natureza_token, DATA_TYPE tipo_do_token,int linha)
+REGISTRO_SIMBOLO *Criar_Registro(char *valor, TOKEN_NATURE natureza_token, DATA_TYPE tipo_do_token,int linha, ESCOPO escopo_var, int *Numero_Var, int Var_Signal)
 {
     REGISTRO_SIMBOLO *registro;
     registro=(REGISTRO_SIMBOLO*)malloc(sizeof(REGISTRO_SIMBOLO));
@@ -12,6 +13,14 @@ REGISTRO_SIMBOLO *Criar_Registro(char *valor, TOKEN_NATURE natureza_token, DATA_
     registro->natureza_token=natureza_token;
     registro->tipo_simbolo=tipo_do_token;
     registro->token=strdup(valor);
+
+    if(Var_Signal)
+    {
+        registro->Deslocamento_Endereco=(*Numero_Var)*DESLOC_VAL;
+        *Numero_Var+=1;
+    }
+
+    registro->escopo=escopo_var;
     return(registro);
 }
 
@@ -43,7 +52,7 @@ void Mensagem_Erro_Semantica_Identificador(REGISTRO_SIMBOLO *registro_uso,REGIST
     }
 }
 
-DATA_TYPE Uso_de_Identificador(REGISTRO_SIMBOLO *registro, PILHA *tabelas)
+REGISTRO_SIMBOLO *Uso_de_Identificador(REGISTRO_SIMBOLO *registro, PILHA *tabelas)
 {
     PILHA *tabela_atual=tabelas;
     REGISTRO_SIMBOLO *registro_tabela;
@@ -60,10 +69,10 @@ DATA_TYPE Uso_de_Identificador(REGISTRO_SIMBOLO *registro, PILHA *tabelas)
                 //Senão for, da uma mensagem de erro
                 Mensagem_Erro_Semantica_Identificador(registro, registro_tabela);
                 //E sai com o código de erro 
-                exit(registro_tabela->natureza_token);
+                exit(registro_tabela->tipo_simbolo);
             }
 
-            return(registro_tabela->tipo_simbolo);
+            return(registro_tabela);
         }
         tabela_atual=tabela_atual->proxima;
     }
@@ -92,6 +101,7 @@ PILHA *Empilha_Tabela(PILHA *pilha)
 
     novo_topo->tabela=tabela;
     novo_topo->proxima=pilha;
+    novo_topo->Numero_Variaveis=0;
     return(novo_topo);
 }
 
@@ -104,20 +114,20 @@ PILHA *Desempilha_Tabela(PILHA *pilha)
 
 void Cria_e_Adiciona_Registro_Variavel(char *valor, TOKEN_NATURE natureza_token, DATA_TYPE tipo_do_token,int linha, PILHA *pilha)
 {
-    REGISTRO_SIMBOLO *registro=Criar_Registro(valor, natureza_token, tipo_do_token, linha);
+    REGISTRO_SIMBOLO *registro=Criar_Registro(valor, natureza_token, tipo_do_token, linha, (ESCOPO)(pilha->proxima!=NULL), &(pilha->Numero_Variaveis), 1);
     Adicionar_Declaracao_de_Identificador(registro, pilha);
 }
 
 void Cria_e_Adiciona_Registro_Funcao(char *valor, TOKEN_NATURE natureza_token, DATA_TYPE tipo_do_token,int linha, PILHA *pilha)
 {
-    REGISTRO_SIMBOLO *registro=Criar_Registro(valor, natureza_token, tipo_do_token, linha);
+    REGISTRO_SIMBOLO *registro=Criar_Registro(valor, natureza_token, tipo_do_token, linha, (ESCOPO)(pilha->proxima!=NULL), &(pilha->Numero_Variaveis), 0);
     PILHA *atual=pilha->proxima;
     Adicionar_Declaracao_de_Identificador(registro, atual);
 }
 
-DATA_TYPE Verifica_Uso(char *valor, TOKEN_NATURE natureza_token, DATA_TYPE tipo_do_token,int linha, PILHA *pilha)
+REGISTRO_SIMBOLO *Verifica_Uso(char *valor, TOKEN_NATURE natureza_token, DATA_TYPE tipo_do_token,int linha, PILHA *pilha)
 {
-    REGISTRO_SIMBOLO *registro=Criar_Registro(valor, natureza_token, tipo_do_token, linha);
+    REGISTRO_SIMBOLO *registro=Criar_Registro(valor, natureza_token, tipo_do_token, linha, (ESCOPO)(pilha->proxima!=NULL), &(pilha->Numero_Variaveis), 0);
 
     return(Uso_de_Identificador(registro, pilha));
 }

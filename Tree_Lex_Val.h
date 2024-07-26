@@ -17,3 +17,5 @@ char* StringCat(char StringBegin[], char StringEnd[]);
 
 //Função para adicionar um nodo filho a um nodo pai
 NODOAST* Adiciona_filho(NODOAST *pai, NODOAST *filho);
+
+void Adiciona_Codigo(NODOAST *nodo, PROGRAM *codigo);

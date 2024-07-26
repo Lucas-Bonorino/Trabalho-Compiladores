@@ -1,4 +1,5 @@
 //Por Lucas dos Santos Bonorino e Rafael Lacerda Busatta
+#include "Code_Generation.h"
 #define ERR_UNDECLARED 10 //2.2
 #define ERR_DECLARED 11 //2.2
 #define ERR_VARIABLE 20 //2.3
@@ -52,6 +53,8 @@ struct Nodo_Arvore
 
     //Descritor para qual o última item da sequência(ultima função, expressão, etc)
     NODOAST  *ultimo;
+
+    PROGRAM *codigo;
 };
 
 //Estrutura de uma entrada na tabela de símbolos
@@ -68,12 +71,19 @@ struct Entrada_da_Tabela_de_Simbolos
 
     //Valor do lexema
     CHAVE token;
+
+    int Deslocamento_Endereco;
+
+    ESCOPO escopo;
 };
 
 //Estrutura para a pilha de tabelas de símbolos
 struct Pilha_de_Tabelas
 {
     TABELA_DE_SIMBOLOS *tabela;
+
+    int Numero_Variaveis;
+
     PILHA *proxima;
 };
 

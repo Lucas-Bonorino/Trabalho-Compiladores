@@ -171,3 +171,8 @@ void exporta (void *arvore)
     }
 
 }
+
+void Adiciona_Codigo(NODOAST *nodo, PROGRAM *codigo)
+{
+    nodo->codigo=codigo;
+}

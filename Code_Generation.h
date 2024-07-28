@@ -15,7 +15,7 @@ struct ILOC_OPERATION
 {   
     OP_TYPE instruction;
     char *parameters[NUM_ARGS];
-    char *target;
+    char *target[NUM_ARGS];
 };
 
 struct LIST_ILOC_OPERATIONS
@@ -41,7 +41,15 @@ PROGRAM *Binary_Operation(char *operation_type,PROGRAM *operand1, PROGRAM *opera
 
 PROGRAM *Atribution(PROGRAM *expression, int Deslocamento, ESCOPO escopo_var);
 
-PROGRAM *Conditional_Flux(PROGRAM *expression, char *label1, char *label2);
+PROGRAM *Conditional_Flux(PROGRAM *expression, PROGRAM *comand_block, PROGRAM *else_block);
+
+PROGRAM *Iterative_Flux(PROGRAM *expression, PROGRAM *command_block);
+
+void Print_Program(PROGRAM *programa);
+
+PROGRAM *Concat_Iloc_Op_Lists(PROGRAM *first_part, PROGRAM *second_part);
+
+PROGRAM *Append_Op(PROGRAM *first_op, PROGRAM *second_op);
 
 
 

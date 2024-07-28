@@ -79,10 +79,10 @@ void *pilha_de_tabelas=NULL;
 
 %%
 
-PROGRAM:                        EMPILHA PROGRAM_COMPONENT_LIST DESEMPILHA{arvore=$2;}|  %empty{arvore=NULL;};
+PROGRAM:                        EMPILHA PROGRAM_COMPONENT_LIST DESEMPILHA{arvore=$2; Print_Program($2->codigo);}|  %empty{arvore=NULL;};
 
 
-PROGRAM_COMPONENT_LIST:         PROGRAM_COMPONENT_LIST PROGRAM_COMPONENT {$$=Adiciona_Seguinte($1, $2);}| PROGRAM_COMPONENT {$$=$1;};
+PROGRAM_COMPONENT_LIST:         PROGRAM_COMPONENT_LIST PROGRAM_COMPONENT {$$=Adiciona_Seguinte($1, $2); Adiciona_Codigo($$, Concat_Iloc_Op_Lists(Get_Program_Conditional($1), Get_Program_Conditional($2)));}| PROGRAM_COMPONENT {$$=$1;};
 
 
 PROGRAM_COMPONENT:              VARIABLE_DECLARATION {$$=NULL;}| FUNCTION_DECLARATION {$$=$1;};  
@@ -94,7 +94,7 @@ VARIABLE_DECLARATION:           DATA_TYPE VARIABLE_LIST ',' {Tipagem_Lista_Varia
 VARIABLE_LIST:                  VARIABLE_LIST ';' TK_IDENTIFICADOR {Cria_e_Adiciona_Registro_Variavel($3->token, VARIAVEL, UNKNOWN, get_line_number(), pilha_de_tabelas);}| TK_IDENTIFICADOR {Cria_e_Adiciona_Registro_Variavel($1->token,VARIAVEL, UNKNOWN, get_line_number(), pilha_de_tabelas);};
 
 
-FUNCTION_DECLARATION:           FUNCTION_HEADER COMMAND_BLOCK DESEMPILHA {$$=Adiciona_filho($1, $2);};
+FUNCTION_DECLARATION:           FUNCTION_HEADER COMMAND_BLOCK DESEMPILHA {$$=Adiciona_filho($1, $2); Adiciona_Codigo($$, $2->codigo);};
 
 
 FUNCTION_HEADER:                EMPILHA FUNCTION_PARAMETERS TK_OC_OR DATA_TYPE '/' TK_IDENTIFICADOR {$$=Cria_folha($6->token, $4); Cria_e_Adiciona_Registro_Funcao($6->token, FUNCAO, $4, get_line_number(), pilha_de_tabelas);};
@@ -113,7 +113,7 @@ PARAMETER:                      DATA_TYPE TK_IDENTIFICADOR {Cria_e_Adiciona_Regi
 COMMAND_BLOCK:                  '{' COMMAND_LIST '}' {$$=$2;} | '{' '}' {$$=NULL;};
 
 
-COMMAND_LIST:                   COMMAND_LIST COMMAND {$$=Adiciona_Seguinte($1, $2);}| COMMAND {$$=$1;} ;
+COMMAND_LIST:                   COMMAND_LIST COMMAND {$$=Adiciona_Seguinte($1, $2); Adiciona_Codigo($$, Concat_Iloc_Op_Lists(Get_Program_Conditional($1), Get_Program_Conditional($2)));}| COMMAND {$$=$1;} ;
 
 
 COMMAND:                        VARIABLE_DECLARATION {$$=NULL;}|  VARIABLE_ASSIGNMENT {$$=$1;}| FUNCTION_CALLING ','{$$=$1;} | RETURN_COMMAND {$$=$1;}| FLUX_CONTROL_COMMAND ',' {$$=$1;}| EMPILHA COMMAND_BLOCK ',' DESEMPILHA {$$=$2;};
@@ -134,12 +134,12 @@ RETURN_COMMAND:                 TK_PR_RETURN EXPRESSION_7TH ',' {$$=Cria_nodo("r
 
 FLUX_CONTROL_COMMAND:           CONDITIONAL_STRUCTURE {$$=$1;}| ITERATIVE_STRUCTURE {$$=$1;};
 
-CONDITIONAL_STRUCTURE:          TK_PR_IF '(' EXPRESSION_7TH ')' COMMAND_BLOCK OPTIONAL_ELSE_STRUCTURE {$$=Adiciona_filho(Cria_nodo("if", $3, $5, UNKNOWN),$6); Adiciona_Codigo($$, Conditional_Flux($3->codigo, Cria_Label(), Cria_Label()));};
+CONDITIONAL_STRUCTURE:          TK_PR_IF '(' EXPRESSION_7TH ')' COMMAND_BLOCK OPTIONAL_ELSE_STRUCTURE {$$=Adiciona_filho(Cria_nodo("if", $3, $5, UNKNOWN),$6); Adiciona_Codigo($$, Conditional_Flux($3->codigo, $5->codigo, Get_Program_Conditional($6)));};
 
 OPTIONAL_ELSE_STRUCTURE:        TK_PR_ELSE COMMAND_BLOCK {$$=$2;}| %empty {$$=NULL;};
 
 
-ITERATIVE_STRUCTURE:            TK_PR_WHILE '(' EXPRESSION_7TH ')' COMMAND_BLOCK  {$$=Cria_nodo("while", $3, $5, UNKNOWN);};
+ITERATIVE_STRUCTURE:            TK_PR_WHILE '(' EXPRESSION_7TH ')' COMMAND_BLOCK  {$$=Cria_nodo("while", $3, $5, UNKNOWN); Adiciona_Codigo($$, Iterative_Flux($3->codigo, $5->codigo));};
 
 
 EXPRESSION_7TH:                     EXPRESSION_7TH TK_OC_OR EXPRESSION_6TH       {$$=Cria_nodo("|", $1, $3,inferencia_de_tipo_expressao($1->tipo_do_nodo, $3->tipo_do_nodo)); Adiciona_Codigo($$, Binary_Operation("|",  $1->codigo, $3->codigo));}| EXPRESSION_6TH {$$=$1;};

@@ -130,8 +130,13 @@ void Imprime(NODOAST *raiz)
 {
     int max_filhos=raiz->numero_filhos;
     //Primeiro imprime o label da raíz
-    Imprime_Label(raiz);
+    //Imprime_Label(raiz);
 
+    if(raiz->codigo!=NULL)
+    {
+        Print_Program(raiz->codigo);
+        printf("\n");
+    }
     //Se houverem filhos
     if(max_filhos!=0)
     {   
@@ -174,5 +179,20 @@ void exporta (void *arvore)
 
 void Adiciona_Codigo(NODOAST *nodo, PROGRAM *codigo)
 {
+    if(nodo==NULL)
+    {
+        return;
+    }
+    
     nodo->codigo=codigo;
+}
+
+PROGRAM *Get_Program_Conditional(NODOAST *nodo)
+{
+    if(nodo==NULL)
+    {
+        return(NULL);
+    }
+
+    return(nodo->codigo);
 }

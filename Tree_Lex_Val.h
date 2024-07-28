@@ -19,3 +19,7 @@ char* StringCat(char StringBegin[], char StringEnd[]);
 NODOAST* Adiciona_filho(NODOAST *pai, NODOAST *filho);
 
 void Adiciona_Codigo(NODOAST *nodo, PROGRAM *codigo);
+
+//Retorna o código de um nodo da ast, se esse nodo existir
+PROGRAM *Get_Program_Conditional(NODOAST *nodo);
+ 

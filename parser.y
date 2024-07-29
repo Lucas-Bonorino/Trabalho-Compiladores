@@ -165,7 +165,7 @@ DIV_MUL_MOD_OP:                     '*' {$$="*";}
                                     | '/' {$$="/";}
                                     | '%'{$$="%";};
 
-EXPRESSION_1ST:                     UNARY_OP EXPRESSION_1ST                      {$$=Cria_nodo($1, $2, NULL, $2->tipo_do_nodo);}| OPERAND  {$$=$1;};
+EXPRESSION_1ST:                     UNARY_OP EXPRESSION_1ST                      {$$=Cria_nodo($1, $2, NULL, $2->tipo_do_nodo); Adiciona_Codigo($$, Unary_Operation($1, $2->codigo));}| OPERAND  {$$=$1;};
 UNARY_OP:                           '-' {$$="-";}| '!' {$$="!";};
 
 
@@ -173,7 +173,7 @@ UNARY_OP:                           '-' {$$="-";}| '!' {$$="!";};
 OPERAND:                        TK_LIT_FALSE {$$=Cria_folha($1->token, BOOL); Adiciona_Codigo($$, Load_Literal("0"));}
                                 | TK_LIT_TRUE {$$=Cria_folha($1->token, BOOL); Adiciona_Codigo($$, Load_Literal("1"));}
                                 | TK_LIT_INT {$$=Cria_folha($1->token, INT); Adiciona_Codigo($$, Load_Literal($1->token));}
-                                | TK_LIT_FLOAT {$$=Cria_folha($1->token, FLOAT);}
+                                | TK_LIT_FLOAT {$$=Cria_folha($1->token, FLOAT); Adiciona_Codigo($$, Load_Literal(Float_Int_Conversion($1->token)));}
                                 | TK_IDENTIFICADOR {REGISTRO_SIMBOLO *reg= Verifica_Uso($1->token, VARIAVEL, UNKNOWN, get_line_number(), pilha_de_tabelas); $$=Cria_folha($1->token, reg->tipo_simbolo); Adiciona_Codigo($$, Load_Var(reg->Deslocamento_Endereco, reg->escopo));} 
                                 | FUNCTION_CALLING {$$=$1;}
                                 | '(' EXPRESSION_7TH ')'{$$=$2;};  

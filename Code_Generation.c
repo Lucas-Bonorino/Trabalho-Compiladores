@@ -40,21 +40,15 @@ void Escreve_Codigo(OPERATION *operacao)
         case NOP:    printf("%s: nop\n", operacao->target[0]); break;
         case ADD:    printf("add %s, %s => %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target[0]); break;
         case SUB:    printf("sub %s, %s => %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target[0]); break;
+        case RSUBI:  printf("rsubI %s, %s => %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target[0]); break;
         case MULT:   printf("mult %s, %s => %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target[0]); break;
         case DIV:    printf("div %s, %s => %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target[0]); break;
         case OR:     printf("or %s, %s => %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target[0]); break;
         case AND:    printf("and %s, %s => %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target[0]); break;
-        case XOR:    printf("xor %s, %s => %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target[0]); break;
-        case LOAD:   printf("load %s => %s\n", operacao->parameters[0], operacao->target[0]); break;
         case LOADI:  printf("loadI %s => %s\n", operacao->parameters[0], operacao->target[0]); break;
         case LOADAI: printf("loadAI %s, %s => %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target[0]); break;
-        case LOADA0: printf("loadA0 %s, %s => %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target[0]); break;
-        case STORE:  printf("store %s => %s\n", operacao->parameters[0], operacao->target[0]); break;
         case STOREAI:printf("storeAI %s => %s, %s\n", operacao->parameters[0], operacao->target[0], operacao->target[1]); break;
-        case STOREA0:printf("storeA0 %s => %s, %s\n", operacao->parameters[0], operacao->target[0], operacao->target[1]); break;
-        case I2I:    printf("i2i %s => %s\n", operacao->parameters[0], operacao->target[0]); break;
         case JUMPI:  printf("jumpI -> %s\n", operacao->target[0]); break;
-        case JUMP:   printf("jump -> %s\n", operacao->target[0]); break;
         case CBR:    printf("cbr %s -> %s, %s\n", operacao->parameters[0], operacao->target[0], operacao->target[1]); break;
         case CMP_LT: printf("cmp_LT %s, %s -> %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target[0]); break;
         case CMP_LE: printf("cmp_LE %s, %s -> %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target[0]); break;
@@ -197,6 +191,37 @@ int Return_OP(char *desired_op)
             return(i);
         }
     }
+}
+
+PROGRAM *Unary_Operation(char *operation_type, PROGRAM *operand)
+{
+    OPERATION *operacao;
+    PROGRAM *link_operacao;
+    operacao=(OPERATION*)malloc(sizeof(OPERATION));
+
+    operacao->instruction=RSUBI;
+
+    operacao->parameters[0]=strdup(operand->operation->target[0]);
+    //Se a operação for o not
+    if(strcmp(operation_type, "!")==0)
+    {   //Tiramos proveito da representação de complemento de 2: 
+        //-i= not(i)+1 => -1-i=not(i) 
+        operacao->parameters[1]=strdup("-1");
+    }
+    else
+    {   //Senão, aproveitamos que 
+        //-i=0-i
+        operacao->parameters[1]=strdup("0");
+    }
+
+    operacao->target[0]=Cria_Temporario();
+
+    link_operacao=Create_Operation(operacao);
+
+    //Coloca a nova operação após a última operação do operando
+    operand=Append_Op(operand, link_operacao);
+
+    return(link_operacao);
 }
 
 PROGRAM *Binary_Operation(char *operation_type,PROGRAM *operand1, PROGRAM *operand2)
@@ -374,4 +399,24 @@ void Print_Program(PROGRAM *programa)
         current=current->next;
     }
     printf("\n");
+}
+
+char *Float_Int_Conversion(char *float_represented)
+{   
+    char *Float_Converted;
+    char *token;
+
+    token=strdup(float_represented);
+    float_represented=strtok(float_represented, ".");
+
+    if(strtok(NULL, ".")==NULL)
+    {
+        Float_Converted=strdup("0");
+    }
+    else
+    {
+        Float_Converted=strdup(float_represented);
+    }
+
+    return(Float_Converted);
 }

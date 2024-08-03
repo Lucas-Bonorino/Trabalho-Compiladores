@@ -79,7 +79,7 @@ void *pilha_de_tabelas=NULL;
 
 %%
 
-PROGRAM:                        EMPILHA PROGRAM_COMPONENT_LIST DESEMPILHA{arvore=$2; Print_Program($2->codigo);}|  %empty{arvore=NULL;};
+PROGRAM:                        EMPILHA PROGRAM_COMPONENT_LIST DESEMPILHA{arvore=$2;}|  %empty{arvore=NULL;};
 
 
 PROGRAM_COMPONENT_LIST:         PROGRAM_COMPONENT_LIST PROGRAM_COMPONENT {$$=Adiciona_Seguinte($1, $2); Adiciona_Codigo($$, Concat_Iloc_Op_Lists(Get_Program_Conditional($1), Get_Program_Conditional($2)));}| PROGRAM_COMPONENT {$$=$1;};

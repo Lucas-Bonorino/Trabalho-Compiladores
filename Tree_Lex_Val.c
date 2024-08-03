@@ -172,7 +172,8 @@ void exporta (void *arvore)
     
     if(raiz!=NULL)
     {
-        Imprime(raiz);
+        //Imprime(raiz);
+        Print_Program(raiz->codigo);
     }
 
 }

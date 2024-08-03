@@ -193,36 +193,6 @@ int Return_OP(char *desired_op)
     }
 }
 
-PROGRAM *Unary_Operation(char *operation_type, PROGRAM *operand)
-{
-    OPERATION *operacao;
-    PROGRAM *link_operacao;
-    operacao=(OPERATION*)malloc(sizeof(OPERATION));
-
-    operacao->instruction=RSUBI;
-
-    operacao->parameters[0]=strdup(operand->operation->target[0]);
-    //Se a operação for o not
-    if(strcmp(operation_type, "!")==0)
-    {   //Tiramos proveito da representação de complemento de 2: 
-        //-i= not(i)+1 => -1-i=not(i) 
-        operacao->parameters[1]=strdup("-1");
-    }
-    else
-    {   //Senão, aproveitamos que 
-        //-i=0-i
-        operacao->parameters[1]=strdup("0");
-    }
-
-    operacao->target[0]=Cria_Temporario();
-
-    link_operacao=Create_Operation(operacao);
-
-    //Coloca a nova operação após a última operação do operando
-    operand=Append_Op(operand, link_operacao);
-
-    return(link_operacao);
-}
 
 PROGRAM *Binary_Operation(char *operation_type,PROGRAM *operand1, PROGRAM *operand2)
 {
@@ -294,6 +264,59 @@ PROGRAM *Generate_Jmp_Comand(char *jump_location)
     jmp_comand->target[0]=strdup(jump_location);
 
     return(Create_Operation(jmp_comand));
+}
+
+
+PROGRAM *Logical_Not(PROGRAM *operand)
+{
+    //Podemos dizer que o not lógico de um valor é 
+    //O mesmo que perguntar se esse valor é zero
+    //Ou seja, carregamos 0 para um registrador
+    //E fazemos a comparação de igualdade com o operando
+    PROGRAM *link_operacao_not, *link_operacao_load;
+    
+    link_operacao_load=Load_Literal("0");
+
+    link_operacao_not=Binary_Operation("==", operand, link_operacao_load);
+
+    return(link_operacao_not);
+}
+
+PROGRAM *Arithmetic_Inversion(PROGRAM *operand)
+{
+    OPERATION *operacao;
+    PROGRAM *link_operacao;
+    operacao=(OPERATION*)malloc(sizeof(OPERATION));
+
+    operacao->instruction=RSUBI;
+
+    operacao->parameters[0]=strdup(operand->operation->target[0]);
+    operacao->parameters[1]=strdup("0");
+
+    operacao->target[0]=Cria_Temporario();
+
+    link_operacao=Create_Operation(operacao);
+
+    //Coloca a nova operação após a última operação do operando
+    operand=Append_Op(operand, link_operacao);
+
+    return(link_operacao);
+}
+
+PROGRAM *Unary_Operation(char *operation_type, PROGRAM *operand)
+{
+    PROGRAM *link_operacao;
+
+    if(strcmp(operation_type, "!")==0)
+    {   
+        link_operacao=Logical_Not(operand);
+    }
+    else
+    {   
+        link_operacao=Arithmetic_Inversion(operand);
+    }
+
+    return(link_operacao);
 }
 
 

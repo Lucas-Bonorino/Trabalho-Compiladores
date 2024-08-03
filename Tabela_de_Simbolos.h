@@ -1,5 +1,5 @@
 //Por Lucas dos Santos Bonorino e Rafael Lacerda Busatta
-#include "Estruturas.h"
+#include "Gerador_Assembly.h"
 
 //Faz a inferência de tipos de um dado(ainda será movido daqui)
 DATA_TYPE inferencia_de_tipo_expressao(DATA_TYPE tipo_dado_1, DATA_TYPE tipo_dado_2);

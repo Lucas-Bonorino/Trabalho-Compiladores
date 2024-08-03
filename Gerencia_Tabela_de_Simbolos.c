@@ -91,6 +91,16 @@ PILHA *Cria_Pilha()
     return(pilha);
 }
 
+int Get_Var_Num(PILHA *pilha)
+{
+    if(pilha==NULL || pilha->proxima==NULL)
+    {
+        return(0);
+    }
+
+    return(pilha->Numero_Variaveis);
+}
+
 PILHA *Empilha_Tabela(PILHA *pilha)
 {
     PILHA *novo_topo;
@@ -101,13 +111,19 @@ PILHA *Empilha_Tabela(PILHA *pilha)
 
     novo_topo->tabela=tabela;
     novo_topo->proxima=pilha;
-    novo_topo->Numero_Variaveis=0;
+    novo_topo->Numero_Variaveis=Get_Var_Num(pilha);
     return(novo_topo);
 }
 
 PILHA *Desempilha_Tabela(PILHA *pilha)
 {
     PILHA *novo_topo=pilha->proxima;
+
+    if(novo_topo!=NULL && novo_topo->proxima!=NULL)
+    {
+        novo_topo->Numero_Variaveis+=(pilha->Numero_Variaveis-novo_topo->Numero_Variaveis);
+    }
+
     Destroi_Tabela(pilha->tabela);
     return(novo_topo);
 }

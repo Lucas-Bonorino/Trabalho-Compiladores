@@ -1,3 +1,3 @@
-#include "Tradutor_Iloc_Assembly.h"
+#include "Estruturas.h"
 
-void Area_Estatica(TABELA_DE_SIMBOLOS *tabela);
+void generateASM(void *tabela_global, void *raiz);

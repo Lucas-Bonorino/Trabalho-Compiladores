@@ -5,7 +5,7 @@ extern int get_line_number(void);
 int yylex(void);
 void yyerror (char const *mensagem);
 extern void *arvore;
-void *pilha_de_tabelas=NULL;
+extern void *pilha_de_tabelas;
 %}
 
 %start PROGRAM
@@ -79,7 +79,7 @@ void *pilha_de_tabelas=NULL;
 
 %%
 
-PROGRAM:                        EMPILHA PROGRAM_COMPONENT_LIST DESEMPILHA{arvore=$2;}|  %empty{arvore=NULL;};
+PROGRAM:                        EMPILHA PROGRAM_COMPONENT_LIST {arvore=$2;}|  %empty{arvore=NULL;};
 
 
 PROGRAM_COMPONENT_LIST:         PROGRAM_COMPONENT_LIST PROGRAM_COMPONENT {$$=Adiciona_Seguinte($1, $2); Adiciona_Codigo($$, Concat_Iloc_Op_Lists(Get_Program_Conditional($1), Get_Program_Conditional($2)));}| PROGRAM_COMPONENT {$$=$1;};
@@ -129,7 +129,7 @@ ARGUMENTS:                      ARGUMENT_LIST {$$=$1;}| %empty {$$=NULL;};
 ARGUMENT_LIST:                  ARGUMENT_LIST ';' EXPRESSION_7TH    {$$=Adiciona_Seguinte($1, $3);}| EXPRESSION_7TH {$$=$1;};
 
 
-RETURN_COMMAND:                 TK_PR_RETURN EXPRESSION_7TH ',' {$$=Cria_nodo("return", $2, NULL, UNKNOWN);};
+RETURN_COMMAND:                 TK_PR_RETURN EXPRESSION_7TH ',' {$$=Cria_nodo("return", $2, NULL, UNKNOWN); Adiciona_Codigo($$, Return(Get_Program_Conditional($2)));};
 
 
 FLUX_CONTROL_COMMAND:           CONDITIONAL_STRUCTURE {$$=$1;}| ITERATIVE_STRUCTURE {$$=$1;};

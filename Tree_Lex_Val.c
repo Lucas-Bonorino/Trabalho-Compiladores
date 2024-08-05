@@ -166,14 +166,15 @@ void Imprime(NODOAST *raiz)
 }
 
 //Função para exportar os nodos
-void exporta (void *arvore)
+void exporta (void *arvore, void *pilha_de_tabelas)
 {
     NODOAST *raiz=(NODOAST*)arvore;
     
     if(raiz!=NULL)
     {
         //Imprime(raiz);
-        Print_Program(raiz->codigo);
+        //Print_Program(raiz->codigo);
+        generateASM(pilha_de_tabelas, arvore);
     }
 
 }

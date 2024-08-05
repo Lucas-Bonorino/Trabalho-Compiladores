@@ -6,7 +6,33 @@
 #define NUM_BINARY_OPERATIONS 12
 
 int Last_Label=0;
-int Last_Temp=0;
+int Used_Temp[NUM_REG]={0};
+
+
+int Aloca_Reg()
+{
+    for(int i=0; i<NUM_REG; i++)
+    {
+        if(!Used_Temp[i])
+        {
+            Used_Temp[i]=USED_REG;
+            return(i);
+        }
+    }
+
+    printf("Erro, numero de labels invalido\n");
+    exit(30);
+}
+
+void Libera_Reg(char *reg_used)
+{
+    char *buff=reg_used+1;
+
+    int numero_registrador=atoi(buff);
+
+    Used_Temp[numero_registrador]=FREE_REG;
+
+}
 
 char *Cria_Label()
 {
@@ -26,8 +52,7 @@ char *Cria_Temporario()
 
     temp_buffer=(char*)malloc(sizeof(char)*BUFFER_SIZE);
 
-    sprintf(temp_buffer, "r%d", Last_Temp);
-    Last_Temp+=1;
+    sprintf(temp_buffer, "r%d", Aloca_Reg());
 
     return(temp_buffer);
 }
@@ -56,6 +81,7 @@ void Escreve_Codigo(OPERATION *operacao)
         case CMP_GE: printf("cmp_GE %s, %s -> %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target[0]); break;
         case CMP_GT: printf("cmp_GT %s, %s -> %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target[0]); break;
         case CMP_NE: printf("cmp_NE %s, %s -> %s\n", operacao->parameters[0], operacao->parameters[1], operacao->target[0]); break;
+        default: break;
     }
 }
 
@@ -204,10 +230,13 @@ PROGRAM *Binary_Operation(char *operation_type,PROGRAM *operand1, PROGRAM *opera
 
     operacao->instruction=iloc_operation[Return_OP(operation_type)];
 
-    operacao->target[0]=Cria_Temporario();
-
     operacao->parameters[0]=strdup(operand1->operation->target[0]);
     operacao->parameters[1]=strdup(operand2->operation->target[0]);
+
+    Libera_Reg(operacao->parameters[0]);
+    Libera_Reg(operacao->parameters[1]);
+
+    operacao->target[0]=Cria_Temporario();
 
     link_operacao=Create_Operation(operacao);
 
@@ -236,7 +265,7 @@ PROGRAM *Atribution(PROGRAM *expression, int Deslocamento, ESCOPO escopo_var)
     operacao->parameters[0]=strdup(expression->operation->target[0]);
     operacao->target[0]=strdup(registers[escopo_var]);
     operacao->target[1]=imediato;
-
+    Libera_Reg(operacao->parameters[0]);
     link_operacao=Create_Operation(operacao);
 
     expression=Append_Op(expression, link_operacao);
@@ -293,6 +322,8 @@ PROGRAM *Arithmetic_Inversion(PROGRAM *operand)
     operacao->parameters[0]=strdup(operand->operation->target[0]);
     operacao->parameters[1]=strdup("0");
 
+    Libera_Reg(operacao->parameters[0]);
+
     operacao->target[0]=Cria_Temporario();
 
     link_operacao=Create_Operation(operacao);
@@ -335,6 +366,7 @@ PROGRAM *Conditional_Flux(PROGRAM *expression, PROGRAM *command_block, PROGRAM *
     operacao->target[1]=strdup(else_label->operation->target[0]);
     link_operacao=Create_Operation(operacao);
 
+    Libera_Reg(operacao->parameters[0]);
     //Colocar a expressão de branch após a última operação da expressão
     expression=Append_Op(expression, link_operacao);
 
@@ -386,7 +418,8 @@ PROGRAM *Iterative_Flux(PROGRAM *expression, PROGRAM *command_block)
     operacao->target[0]=strdup(loop_label->operation->target[0]);
     operacao->target[1]=strdup(escape_label->operation->target[0]);
     link_operacao=Create_Operation(operacao);
-
+    
+    //Libera_Reg(operacao->parameters[0]);
     //Coloca o label da expressão de condição antes da primeira operação da expressão 
     condition_label=Append_Op(condition_label, Find_First(expression));
 
@@ -409,6 +442,29 @@ PROGRAM *Iterative_Flux(PROGRAM *expression, PROGRAM *command_block)
 
     return(link_operacao);
 
+}
+
+PROGRAM *Return(PROGRAM *operand)
+{
+    OPERATION *operacao;
+    PROGRAM *link_operacao;
+
+    if(operand==NULL)
+    {
+        return(operand);
+    }
+
+    operacao=(OPERATION*)malloc(sizeof(OPERATION));
+    operacao->instruction=RETURN;
+    operacao->parameters[0]=strdup(operand->operation->target[0]);
+
+    Libera_Reg(operand->operation->target[0]);
+
+    link_operacao=Create_Operation(operacao);
+
+    Append_Op(operand, link_operacao);
+
+    return(link_operacao);
 }
 
 

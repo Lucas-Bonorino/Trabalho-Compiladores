@@ -9,7 +9,7 @@ const char *Get_Reg_Num(char *reg)
 
     int index=atoi(buff);
 
-    const char *registers[]={"eax", "ecx", "edx", "ebx", "esi", "edi", "r8d", "r9d", "r10d",  "r11d",  "r12d",  "r13d",  "r14d",  "r15d", "esp", "ebp"};
+    const char *registers[]={"eax", "ecx", "edx", "ebx", "esi", "edi", "r8d", "r9d", "r10d",  "r11d",  "r12d",  "r13d",  "r14d", "r15d"};
 
     return(registers[index]);
 }
@@ -46,7 +46,7 @@ void Divide_Op(OPERATION *operacao)
 
     if(reg!=0)
     {   
-        printf("\tmovl %%eax, %%%s\n\tpopq %%rax\n", Get_Reg_Num(operacao->target[0]));
+        printf("\tmovlq %%eax, %%%s\n\tpop %%rax\n", Get_Reg_Num(operacao->target[0]));
     }
 
     if(reg!=2)
@@ -62,10 +62,42 @@ void Return_Op(OPERATION *operacao)
 
     if(reg!=0)
     {
-        printf("\tmovl %%%s, %%eax\n", operacao->parameters[0]);
+        printf("\tmovl %%%s, %%eax\n", Get_Reg_Num(operacao->parameters[0]));
     }
 
     printf("\tpopq %%rbp\n\tret\n");
+}
+
+void Branch(OPERATION *operacao)
+{
+    //Stacka o valor de rbp para usá-lo como intermediário
+    printf("\tmovl $0, %%r15d\n");
+
+    //Realiza a comparação
+    printf("\tcmp %%%s, %%r15d\n", Get_Reg_Num(operacao->parameters[0]));
+
+    //Realiza o jump
+    printf("\tjnz %s\n\tjmp %s\n",  operacao->target[0], operacao->target[1]);
+    
+
+}
+
+void Rel_Op(OPERATION *operacao, char *first_rel, char *second_rel)
+{
+    //Bufferizamos o valor de rbp no stack
+    printf("\tpushq %%rbp\n");
+
+    //Realiza a comparação entre valores
+    printf("\tcmp %%%s, %%%s\n", Get_Reg_Num(operacao->parameters[1]), Get_Reg_Num(operacao->parameters[0]));
+
+    //Se for verdadeira, move um para o registrador
+    printf("\tmovl $1, %%ebp\n\t%s %%ebp, %%%s\n", first_rel, Get_Reg_Num(operacao->target[0]));
+
+    //Senão, move 0 para o registrador
+    printf("\tmovl $0, %%ebp\n\t%s %%ebp, %%%s\n", second_rel, Get_Reg_Num(operacao->target[0]));
+
+    //Restauramos o valor de rbp
+    printf("\tpopq %%rbp\n");
 }
 
 void Print_Global_Var(REGISTRO_SIMBOLO *registro, int first_var_in_section)
@@ -82,7 +114,8 @@ void Print_Global_Var(REGISTRO_SIMBOLO *registro, int first_var_in_section)
 
 void Print_Function_Header(REGISTRO_SIMBOLO *registro)
 {
-    printf("\t.text\n\t.globl %s\n\t.type %s, @function\n%s:\n\tpushq %%rbp\n\tmovq %%rsp, %%rbp\n", registro->token, registro->token, registro->token);
+    //inicializamos o rbp, e subtraimos dele 32 para termos 32 bytes de espaço disponível no stack
+    printf("\t.text\n\t.globl %s\n\t.type %s, @function\n%s:\n\tpushq %%rbp\n\tmovq %%rsp, %%rbp\n\tsubq $32, %%rbp\n", registro->token, registro->token, registro->token);
 }
 
 void Print_Operation(OPERATION *operacao)
@@ -98,16 +131,17 @@ void Print_Operation(OPERATION *operacao)
         case OR:     printf("\torl %%%s, %%%s\n", Get_Reg_Num(operacao->parameters[1]), Get_Reg_Num(operacao->parameters[0]));break;
         case AND:    printf("\tandl %%%s, %%%s\n",Get_Reg_Num(operacao->parameters[1]), Get_Reg_Num(operacao->parameters[0]));break;
         case LOADI:  printf("\tmovl $%s, %%%s\n", operacao->parameters[0], Get_Reg_Num(operacao->target[0]));break;
-        case LOADAI: printf("\tmovl -%d(%%%s), %%%s\n", (4+atoi(operacao->parameters[1])), Get_Var_Reg(operacao->parameters[0]), Get_Reg_Num(operacao->target[0]));break;
-        case STOREAI:printf("\tmovl %%%s, -%d(%%%s)\n",  Get_Reg_Num(operacao->parameters[0]), (4+atoi(operacao->target[1])), Get_Var_Reg(operacao->target[0]));break;
+        case LOADAI: printf("\tmovl %s(%%%s), %%%s\n", operacao->parameters[1], Get_Var_Reg(operacao->parameters[0]), Get_Reg_Num(operacao->target[0]));break;
+        case STOREAI:printf("\tmovl %%%s, %s(%%%s)\n",  Get_Reg_Num(operacao->parameters[0]), operacao->target[1], Get_Var_Reg(operacao->target[0]));break;
         case JUMPI:  printf("\tjmp %s\n", operacao->target[0]);break;
-        case CBR:    printf("\tcmp %%%s, $0\n\tjnz %s\n\tjmp %s\n", Get_Reg_Num(operacao->parameters[0]), operacao->target[0], operacao->target[1]);break;
-        case CMP_LT: printf("\tcmp %%%s, %%%s\n\tmovl $1, %%%s\n\tmovge $0, %%%s\n", Get_Reg_Num(operacao->parameters[1]), Get_Reg_Num(operacao->parameters[0]), Get_Reg_Num(operacao->target[0]), Get_Reg_Num(operacao->target[0]));break;
-        case CMP_LE: printf("\tcmp %%%s, %%%s\n\tmovle $1, %%%s\n\tmovg $0, %%%s\n", Get_Reg_Num(operacao->parameters[1]), Get_Reg_Num(operacao->parameters[0]), Get_Reg_Num(operacao->target[0]), Get_Reg_Num(operacao->target[0]));break;
-        case CMP_EQ: printf("\tcmp %%%s, %%%s\n\tmove $1, %%%s\n\tmovne $0, %%%s\n", Get_Reg_Num(operacao->parameters[1]), Get_Reg_Num(operacao->parameters[0]), Get_Reg_Num(operacao->target[0]), Get_Reg_Num(operacao->target[0]));break;
-        case CMP_GE: printf("\tcmp %%%s, %%%s\n\tmovge $1, %%%s\n\tmovl $0, %%%s\n", Get_Reg_Num(operacao->parameters[1]), Get_Reg_Num(operacao->parameters[0]), Get_Reg_Num(operacao->target[0]), Get_Reg_Num(operacao->target[0]));break;
-        case CMP_GT: printf("\tcmp %%%s, %%%s\n\tmovg $1, %%%s\n\tmovle $0, %%%s\n", Get_Reg_Num(operacao->parameters[1]), Get_Reg_Num(operacao->parameters[0]), Get_Reg_Num(operacao->target[0]), Get_Reg_Num(operacao->target[0]));break;
-        case CMP_NE: printf("\tcmp %%%s, %%%s\n\tmovne $1, %%%s\n\tmove $0, %%%s\n", Get_Reg_Num(operacao->parameters[1]), Get_Reg_Num(operacao->parameters[0]), Get_Reg_Num(operacao->target[0]), Get_Reg_Num(operacao->target[0]));break;
+        //Observação: para as instruções abaixo é necessário alterar os comandos cmovgcc para que sejam entre registradores, o mesmo vale para cmp 
+        case CBR:    Branch(operacao);break;
+        case CMP_LT: Rel_Op(operacao, "cmovl", "cmovge");break;
+        case CMP_LE: Rel_Op(operacao, "cmovle", "cmovg");break;
+        case CMP_EQ: Rel_Op(operacao, "cmove", "cmovne");break;
+        case CMP_GE: Rel_Op(operacao, "cmovge", "cmovl");break;
+        case CMP_GT: Rel_Op(operacao, "cmovg", "cmovle");break;
+        case CMP_NE: Rel_Op(operacao, "cmovne", "cmove");break;
         case RETURN: Return_Op(operacao);break;
     }
 }

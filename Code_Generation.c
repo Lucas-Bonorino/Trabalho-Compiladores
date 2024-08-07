@@ -174,7 +174,7 @@ PROGRAM *Append_Op(PROGRAM *first_op, PROGRAM *second_op)
 }
 
 
-PROGRAM *Load_Var(int Deslocamento, ESCOPO escopo_var)
+PROGRAM *Load_Var(int Deslocamento, ESCOPO escopo_var, char *nome_var)
 {
     const char *registers[]={"rbss", "rfp"};
     OPERATION *operacao;
@@ -183,8 +183,16 @@ PROGRAM *Load_Var(int Deslocamento, ESCOPO escopo_var)
     operacao->instruction=LOADAI; 
 
     char *imediato;
-    imediato=(char*)malloc(sizeof(char)*BUFFER_SIZE);
-    sprintf(imediato, "%d", Deslocamento);
+    
+    if(strcmp(registers[escopo_var], "rbss")==0)
+    {
+        imediato=strdup(nome_var);
+    }
+    else
+    {
+        imediato=(char*)malloc(sizeof(char)*(BUFFER_SIZE+1));
+        sprintf(imediato, "-%d", (Deslocamento+4));
+    }
 
     operacao->parameters[0]=strdup(registers[escopo_var]);
     operacao->parameters[1]=imediato;
@@ -249,7 +257,7 @@ PROGRAM *Binary_Operation(char *operation_type,PROGRAM *operand1, PROGRAM *opera
     return(link_operacao);
 }
 
-PROGRAM *Atribution(PROGRAM *expression, int Deslocamento, ESCOPO escopo_var)
+PROGRAM *Atribution(PROGRAM *expression, int Deslocamento, ESCOPO escopo_var, char *nome_var)
 {
     const char *registers[]={"rbss", "rfp"};
     OPERATION *operacao;
@@ -257,8 +265,16 @@ PROGRAM *Atribution(PROGRAM *expression, int Deslocamento, ESCOPO escopo_var)
     operacao=(OPERATION*)malloc(sizeof(OPERATION));
 
     char *imediato;
-    imediato=(char*)malloc(sizeof(char)*BUFFER_SIZE);
-    sprintf(imediato, "%d", Deslocamento);
+    
+    if(strcmp(registers[escopo_var], "rbss")==0)
+    {
+        imediato=strdup(nome_var);
+    }
+    else
+    {
+        imediato=(char*)malloc(sizeof(char)*(BUFFER_SIZE+1));
+        sprintf(imediato, "-%d", (Deslocamento+4));
+    }
 
     operacao->instruction=STOREAI;
 

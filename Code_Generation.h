@@ -2,7 +2,7 @@
 #define USED_REG 1
 #define FREE_REG 0
 #define NUM_ARGS 2
-#define NUM_REG 16
+#define NUM_REG 14
 
 
 
@@ -37,7 +37,7 @@ void Escreve_Codigo(OPERATION *operacao);
 
 PROGRAM *Create_Operation(OPERATION *op);
 
-PROGRAM *Load_Var(int Deslocamento, ESCOPO escopo_var);
+PROGRAM *Load_Var(int Deslocamento, ESCOPO escopo_var, char *nome_var);
 
 PROGRAM *Load_Literal(char *literal);
 
@@ -45,7 +45,7 @@ PROGRAM *Unary_Operation(char *operation_type, PROGRAM *operand);
 
 PROGRAM *Binary_Operation(char *operation_type,PROGRAM *operand1, PROGRAM *operand2);
 
-PROGRAM *Atribution(PROGRAM *expression, int Deslocamento, ESCOPO escopo_var);
+PROGRAM *Atribution(PROGRAM *expression, int Deslocamento, ESCOPO escopo_var, char *nome_var);
 
 PROGRAM *Conditional_Flux(PROGRAM *expression, PROGRAM *comand_block, PROGRAM *else_block);
 

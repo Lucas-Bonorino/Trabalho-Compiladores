@@ -119,7 +119,7 @@ COMMAND_LIST:                   COMMAND_LIST COMMAND {$$=Adiciona_Seguinte($1, $
 COMMAND:                        VARIABLE_DECLARATION {$$=NULL;}|  VARIABLE_ASSIGNMENT {$$=$1;}| FUNCTION_CALLING ','{$$=$1;} | RETURN_COMMAND {$$=$1;}| FLUX_CONTROL_COMMAND ',' {$$=$1;}| EMPILHA COMMAND_BLOCK ',' DESEMPILHA {$$=$2;};
 
 
-VARIABLE_ASSIGNMENT:            TK_IDENTIFICADOR '=' EXPRESSION_7TH ',' {REGISTRO_SIMBOLO *reg= Verifica_Uso($1->token, VARIAVEL, UNKNOWN, get_line_number(), pilha_de_tabelas); $$=Cria_nodo("=", Cria_folha($1->token, reg->tipo_simbolo), $3, reg->tipo_simbolo); Adiciona_Codigo($$,Atribution($3->codigo, reg->Deslocamento_Endereco, reg->escopo));};
+VARIABLE_ASSIGNMENT:            TK_IDENTIFICADOR '=' EXPRESSION_7TH ',' {REGISTRO_SIMBOLO *reg= Verifica_Uso($1->token, VARIAVEL, UNKNOWN, get_line_number(), pilha_de_tabelas); $$=Cria_nodo("=", Cria_folha($1->token, reg->tipo_simbolo), $3, reg->tipo_simbolo); Adiciona_Codigo($$,Atribution($3->codigo, reg->Deslocamento_Endereco, reg->escopo, reg->token));};
 
 
 FUNCTION_CALLING:               TK_IDENTIFICADOR '(' ARGUMENTS ')' {REGISTRO_SIMBOLO *reg=Verifica_Uso($1->token, FUNCAO, UNKNOWN,get_line_number(), pilha_de_tabelas);$$=Cria_nodo(StringCat("call ",$1->token), $3, NULL, reg->tipo_simbolo);};
@@ -174,7 +174,7 @@ OPERAND:                        TK_LIT_FALSE {$$=Cria_folha($1->token, BOOL); Ad
                                 | TK_LIT_TRUE {$$=Cria_folha($1->token, BOOL); Adiciona_Codigo($$, Load_Literal("1"));}
                                 | TK_LIT_INT {$$=Cria_folha($1->token, INT); Adiciona_Codigo($$, Load_Literal($1->token));}
                                 | TK_LIT_FLOAT {$$=Cria_folha($1->token, FLOAT); Adiciona_Codigo($$, Load_Literal(Float_Int_Conversion($1->token)));}
-                                | TK_IDENTIFICADOR {REGISTRO_SIMBOLO *reg= Verifica_Uso($1->token, VARIAVEL, UNKNOWN, get_line_number(), pilha_de_tabelas); $$=Cria_folha($1->token, reg->tipo_simbolo); Adiciona_Codigo($$, Load_Var(reg->Deslocamento_Endereco, reg->escopo));} 
+                                | TK_IDENTIFICADOR {REGISTRO_SIMBOLO *reg= Verifica_Uso($1->token, VARIAVEL, UNKNOWN, get_line_number(), pilha_de_tabelas); $$=Cria_folha($1->token, reg->tipo_simbolo); Adiciona_Codigo($$, Load_Var(reg->Deslocamento_Endereco, reg->escopo, reg->token));} 
                                 | FUNCTION_CALLING {$$=$1;}
                                 | '(' EXPRESSION_7TH ')'{$$=$2;};  
 

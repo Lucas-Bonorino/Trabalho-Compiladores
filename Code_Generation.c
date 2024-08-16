@@ -1,3 +1,4 @@
+//Por Lucas dos Santos Bonorino e Rafael Lacerda Busatta
 #include "Code_Generation.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,7 +9,9 @@
 int Last_Label=0;
 int Used_Temp[NUM_REG]={0};
 
-
+//Consideramos que um registrador não será usado por variável, mas sim por temporário
+//Sua vida útil torna-se o momento em que um valor é movido para ele, até o momento em que 
+//O valor dele é usado
 int Aloca_Reg()
 {
     for(int i=0; i<NUM_REG; i++)
@@ -93,6 +96,7 @@ PROGRAM *Create_Operation(OPERATION *op)
     New_Operation->operation=op;
     New_Operation->next=NULL;
     New_Operation->previous=NULL;
+    New_Operation->Is_Leader=0;
 
     return(New_Operation);
 }

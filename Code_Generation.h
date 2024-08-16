@@ -8,6 +8,7 @@
 
 typedef struct ILOC_OPERATION OPERATION;
 typedef struct LIST_ILOC_OPERATIONS PROGRAM; 
+typedef struct BASIC_BLOCK DAG_NODE;
 
 //Por simplificação, em um projeto inicial, faremos com que todas as operações usem apenas
 //Registradores, sem o uso de imediatos. Todas os imediatos devem ser carregados para registradores
@@ -27,6 +28,7 @@ struct LIST_ILOC_OPERATIONS
     OPERATION *operation;
     PROGRAM *next;
     PROGRAM *previous;
+    int Is_Leader;
 };
 
 char *Cria_Label();
@@ -63,6 +65,11 @@ char *Float_Int_Conversion(char *float_represented);
 
 PROGRAM *Find_First(PROGRAM *op_list);
 
-
+struct BASIC_BLOCK
+{
+    int Block_Num;
+    int Num_Next_Blocks;
+    DAG_NODE **Next_Blocks;
+};
 
 

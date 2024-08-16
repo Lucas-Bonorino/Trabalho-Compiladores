@@ -130,13 +130,8 @@ void Imprime(NODOAST *raiz)
 {
     int max_filhos=raiz->numero_filhos;
     //Primeiro imprime o label da raíz
-    //Imprime_Label(raiz);
+    Imprime_Label(raiz);
 
-    if(raiz->codigo!=NULL)
-    {
-        Print_Program(raiz->codigo);
-        printf("\n");
-    }
     //Se houverem filhos
     if(max_filhos!=0)
     {   
@@ -174,7 +169,8 @@ void exporta (void *arvore, void *pilha_de_tabelas)
     {
         //Imprime(raiz);
         //Print_Program(raiz->codigo);
-        generateASM(pilha_de_tabelas, arvore);
+        //generateASM(pilha_de_tabelas, arvore);
+        generateBasicBlocks(arvore);
     }
 
 }

@@ -1,0 +1,23 @@
+int f,
+
+() | int / main
+{
+    int d;b;a;n;c,
+    d=10,
+    b=3,
+    a=3,
+    n=10,
+    c=!2,
+    f=2, 
+
+    if(c>0)
+    {
+        b=15, 
+    }
+    else
+    {
+        b=10,
+    },
+
+    return f,   
+}

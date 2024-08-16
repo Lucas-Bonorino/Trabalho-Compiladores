@@ -207,7 +207,7 @@ DAG_NODE *Generate_Node(int num)
     return(node);
 }
 
-
+//Ecoontra quais instruções são instruções líderes
 void Find_Leaders(PROGRAM *inicio_Programa)
 {
     PROGRAM *current=inicio_Programa;
@@ -234,6 +234,7 @@ void Find_Leaders(PROGRAM *inicio_Programa)
     }
 }
 
+//Adiciona nodo a uma lista contendo os nodos do DAG
 DAG_NODE **Adiciona_Nodo_Lista(DAG_NODE **blocos, int num_next_block)
 {
     DAG_NODE *novo_nodo=Generate_Node(num_next_block);
@@ -252,6 +253,7 @@ DAG_NODE **Adiciona_Nodo_Lista(DAG_NODE **blocos, int num_next_block)
     return(blocos);
 }
 
+//Encontra o valor do nodo DAG no qual está o label de uma instrução de jump ou branch
 int Encontra_Nodo_Do_Label(char *label_buscado, PROGRAM *inicio)
 {
     int Num_Block=-1;
@@ -280,6 +282,7 @@ int Encontra_Nodo_Do_Label(char *label_buscado, PROGRAM *inicio)
     return(-1);
 }
 
+//Adiciona nodo a lista de nodos sequentes de outro
 void Adiciona_Nodo_DAG(DAG_NODE *nodo_pai, DAG_NODE *nodo_filho)
 {
     if(nodo_pai->Next_Blocks==NULL)
@@ -302,9 +305,11 @@ DAG_NODE **Generate_Basic_Blocks(PROGRAM *Inicio_Programa, int *Current_Block_Nu
     DAG_NODE **Blocos=NULL;
 
     while(current_instruction!=NULL)
-    {
+    {   
+        //Se uma nova instrução líder foi encontrada
         if(current_instruction->Is_Leader)
-        {
+        {   
+            //Um novo bloco básico deve ser gerado
             *Current_Block_Num+=1;
             Blocos=Adiciona_Nodo_Lista(Blocos, *Current_Block_Num);
         }
@@ -328,8 +333,10 @@ void Tie_Blocks(DAG_NODE **Blocos, PROGRAM *Inicio_Programa, int max_blocks)
         
         if(current_instruction->Is_Leader)
         {
-            //Um bloco pode não ser seguinte ao anterior, caso o anterior termine em um jump ou branch
-            //Caso ele seja, deixamos a cargo do branch ou do jump
+            //Um bloco pode não ser seguinte ao anterior
+            //Sendo assim, usamos a última instrução do bloco
+            //Anterior para definir se eles devem ser concatenados
+            //(Não fazemos se a última instrução anterior for um jump)
             if((last_command!=JUMPI) && (last_command!=CBR) && ((Block_Num+1)<max_blocks) && (Block_Num>=0))
             {
                 Adiciona_Nodo_DAG(Blocos[Block_Num], Blocos[Block_Num+1]);
@@ -339,14 +346,18 @@ void Tie_Blocks(DAG_NODE **Blocos, PROGRAM *Inicio_Programa, int max_blocks)
 
         }
 
+        //Se houve jump
         if(inst==JUMPI)
-        {
+        {   
+            //Achamos o bloco para o qual o jump foi feito e concatenamos ele
             int Nodo_Label_Jump=Encontra_Nodo_Do_Label(current_instruction->operation->target[0], Inicio_Programa);
             Adiciona_Nodo_DAG(Blocos[Block_Num], Blocos[Nodo_Label_Jump]);
         }
 
+        //Se houve branch
         if(inst==CBR)
-        {
+        {   
+            //Fazemos o mesmo com ambos destinos do branch
             int Nodo_Label_Jump0, Nodo_Label_Jump1;
             Nodo_Label_Jump0=Encontra_Nodo_Do_Label(current_instruction->operation->target[0], Inicio_Programa);
             Nodo_Label_Jump1=Encontra_Nodo_Do_Label(current_instruction->operation->target[1], Inicio_Programa);
@@ -355,13 +366,14 @@ void Tie_Blocks(DAG_NODE **Blocos, PROGRAM *Inicio_Programa, int max_blocks)
             Adiciona_Nodo_DAG(Blocos[Block_Num], Blocos[Nodo_Label_Jump1]);
         }
 
-        //Queremos a última instrução que não seja um label
+        //Queremos buferizar a última instrução do bloco anterior que não seja um label
         if(inst!=NOP) last_command=inst;
 
         current_instruction=current_instruction->next;
     }
 }
 
+//Imprime os blocos
 void Print_Blocks(DAG_NODE **Blocos, int Num_Blocks)
 {
     for(int i=0; i<Num_Blocks; i++)
@@ -377,6 +389,7 @@ void Print_Blocks(DAG_NODE **Blocos, int Num_Blocks)
     }
 }
 
+//Faz a geração e impressão dos blocos básicos
 void generateBasicBlocks(void *raiz)
 {
     NODOAST *arvore=(NODOAST*)raiz;

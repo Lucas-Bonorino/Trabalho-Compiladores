@@ -28,6 +28,7 @@ struct LIST_ILOC_OPERATIONS
     OPERATION *operation;
     PROGRAM *next;
     PROGRAM *previous;
+    //Adicionado um booleano para dizer se uma instrução é líder ou não
     int Is_Leader;
 };
 
@@ -65,6 +66,7 @@ char *Float_Int_Conversion(char *float_represented);
 
 PROGRAM *Find_First(PROGRAM *op_list);
 
+//Estrutura dos nodos DAG
 struct BASIC_BLOCK
 {
     int Block_Num;

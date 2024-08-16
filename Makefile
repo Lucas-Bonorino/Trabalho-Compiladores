@@ -11,7 +11,7 @@ DEPS = $(patsubst %,$(IDIR)/%,$(_DEPS))
 _OBJ = Tree_Lex_Val.o parser.tab.o main.o lex.yy.o Gerencia_Tabela_de_Simbolos.o Tabela_de_Simbolos.o Code_Generation.o Gerador_Assembly.o 
 OBJ = $(patsubst %,$(ODIR)/%,$(_OBJ))
 
-all: parser scanner generate_obj etapa6 clean
+all: parser scanner generate_obj etapa7 clean
 
 parser: parser.y
 	bison -d parser.y 
@@ -22,7 +22,7 @@ scanner: scanner.l
 generate_obj: $(DEPS)
 	$(CC) -c $(DEPS)
 
-etapa6: $(OBJ)
+etapa7: $(OBJ)
 	$(CC) -o $@ $^ $(CFLAGS) $(LIBS)
 
 .PHONY: clean
